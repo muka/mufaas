@@ -1,2 +1,2 @@
-# mufaas
+# μFaaS
 golang micro FaaS framework
