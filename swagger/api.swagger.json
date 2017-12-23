@@ -1,0 +1,256 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/deploy": {
+      "post": {
+        "operationId": "Add",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiAddResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiAddRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MufaasService"
+        ]
+      }
+    },
+    "/v1/list": {
+      "post": {
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiListRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MufaasService"
+        ]
+      }
+    },
+    "/v1/remove": {
+      "post": {
+        "operationId": "Remove",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiRemoveResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRemoveRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MufaasService"
+        ]
+      }
+    },
+    "/v1/run/{Name}": {
+      "post": {
+        "operationId": "Run",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiRunResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRunRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MufaasService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiAddRequest": {
+      "type": "object",
+      "properties": {
+        "Info": {
+          "$ref": "#/definitions/apiFunctionInfo"
+        },
+        "Source": {
+          "type": "string",
+          "format": "byte"
+        },
+        "Image": {
+          "type": "string"
+        }
+      }
+    },
+    "apiAddResponse": {
+      "type": "object",
+      "properties": {
+        "Info": {
+          "$ref": "#/definitions/apiFunctionInfo"
+        }
+      }
+    },
+    "apiFunctionInfo": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "string"
+        },
+        "Type": {
+          "type": "string"
+        },
+        "Cmd": {
+          "type": "string"
+        },
+        "Error": {
+          "type": "string"
+        }
+      }
+    },
+    "apiListRequest": {
+      "type": "object",
+      "properties": {
+        "Filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "apiListResponse": {
+      "type": "object",
+      "properties": {
+        "Functions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFunctionInfo"
+          }
+        }
+      }
+    },
+    "apiRemoveRequest": {
+      "type": "object",
+      "properties": {
+        "Filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "apiRemoveResponse": {
+      "type": "object",
+      "properties": {
+        "Functions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFunctionInfo"
+          }
+        }
+      }
+    },
+    "apiRunRequest": {
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "byte"
+          }
+        },
+        "Env": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Stdin": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "apiRunResponse": {
+      "type": "object",
+      "properties": {
+        "Output": {
+          "type": "string",
+          "format": "byte"
+        },
+        "Err": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    }
+  }
+}

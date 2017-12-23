@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+
+message FunctionInfo {
+	string ID   = 1;
+	string Name = 2;
+	string Type = 3;
+	string Cmd  = 4;
+	string Error = 5;
+}
+
+message AddRequest {
+    FunctionInfo Info = 1;
+	bytes Source = 2;
+	string Image = 3;
+}
+
+message AddResponse {
+    FunctionInfo Info = 1;
+}
+
+message RemoveRequest {
+    repeated string Filter = 1;
+}
+
+message RemoveResponse {
+    repeated FunctionInfo Functions = 1;
+}
+
+message ListRequest {
+    repeated string Filter = 1;
+}
+
+message ListResponse {
+    repeated FunctionInfo Functions = 1;
+}
+
+message RunRequest {
+    string Name = 1;
+    repeated bytes Args = 2;
+    repeated string Env = 3;
+    bytes Stdin = 4;
+}
+
+message RunResponse {
+    bytes Output = 1;
+    bytes Err = 2;
+}
+
+service MufaasService {
+  rpc Add (AddRequest) returns (AddResponse) {
+    option (google.api.http) = {
+        post: "/v1/deploy"
+        body: "*"
+    };
+  }
+  rpc Remove (RemoveRequest) returns (RemoveResponse) {
+    option (google.api.http) = {
+        post: "/v1/remove"
+        body: "*"
+    };
+  }
+  rpc List (ListRequest) returns (ListResponse) {
+    option (google.api.http) = {
+        post: "/v1/list"
+        body: "*"
+    };
+  }
+  rpc Run (RunRequest) returns (RunResponse) {
+    option (google.api.http) = {
+        post: "/v1/run/{Name}"
+        body: "*"
+    };
+  }
+}
