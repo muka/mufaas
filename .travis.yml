@@ -7,5 +7,3 @@ services:
 before_install:
     - go get -u github.com/golang/dep/cmd/dep
     - go get -u github.com/mattn/goveralls
-script:
-    - cd $GOPATH/src/github.com/muka/mufaas && $GOPATH/bin/goveralls -service=travis-ci -coverprofile=coverage.out
