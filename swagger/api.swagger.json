@@ -223,8 +223,7 @@
         "Args": {
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "byte"
+            "type": "string"
           }
         },
         "Env": {

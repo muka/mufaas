@@ -13,13 +13,10 @@ func List(req *api.ListRequest) (*api.ListResponse, error) {
 	}
 	var list []*api.FunctionInfo
 	for _, image := range images {
-		// for _, label := range image.Labels {
-		// 	name:= label
-		// }
-		// name:=
 		item := &api.FunctionInfo{
-			ID: image.ID,
-			// Name: ,
+			ID:   image.ID,
+			Name: image.RepoTags[0],
+			Type: image.Labels["mufaas-type"],
 		}
 		list = append(list, item)
 	}

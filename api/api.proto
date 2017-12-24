@@ -40,7 +40,7 @@ message ListResponse {
 
 message RunRequest {
     string Name = 1;
-    repeated bytes Args = 2;
+    repeated string Args = 2;
     repeated string Env = 3;
     bytes Stdin = 4;
 }

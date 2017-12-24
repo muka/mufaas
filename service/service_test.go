@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"flag"
 	"os"
 	"testing"
 	"time"
@@ -14,7 +15,13 @@ import (
 const grpcEndpoint = "localhost:5001"
 
 func TestMain(m *testing.M) {
-	log.SetLevel(log.DebugLevel)
+
+	var v = flag.Bool("v", false, "verbose")
+	flag.Parse()
+	if *v {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	os.Exit(m.Run())
 }
 
