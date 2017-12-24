@@ -1,13 +1,14 @@
-.PHONY: deps generate build clean docker/push docker/build test
+.PHONY: build deps generate clean test coverage docker/push docker/build
 
-build=./build
-dist=./dist
+build_dir=./build
 
 dockerName := opny/mufaas
 
 gittag := $(shell git describe --tag --always)
 tag := $(shell echo ${gittag} | cut -d'-' -f 1)
 basetag := $(shell echo ${gittag} | cut -d'.' -f 1)
+
+all: deps test coverage
 
 deps:
 	go get -u github.com/golang/protobuf/protoc-gen-go
@@ -24,15 +25,23 @@ deps:
 generate:
 	go generate ./api/api.go
 
-build: generate
-	CGO_ENABLED=0 go build -o ${OUTPUT_DIR}/mufaas mufaas.go
+build:
+	mkdir -p ${build_dir}
+	CGO_ENABLED=0 go build -o ${build_dir}/mufaas mufaas.go
 
 clean:
-	rm -rf ${OUTPUT_DIR}
-	rm -rf ${DIST_DIR}
+	rm -rf ${build_dir}
 
 test:
-	@go test ./...
+	@go test ./... -v
+
+coverage:
+	echo "mode: count" > coverage.out
+	go test -covermode="count" -coverprofile="coverage.tmp" ./service
+	cat coverage.tmp | grep -v "mode: count" >> coverage.out
+	go test -covermode="count" -coverprofile="coverage.tmp" ./docker
+	cat coverage.tmp | grep -v "mode: count" >> coverage.out
+	rm coverage.tmp
 
 docker/build: build
 	echo "Building ${tag}"
