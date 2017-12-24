@@ -64,7 +64,7 @@ func TestExecWithTimeout(t *testing.T) {
 	opts := ExecOptions{
 		Name:      "exec_test_timeout",
 		ImageName: imageName,
-		Args:      []string{"timeout test"},
+		Args:      []string{"timeout"},
 		Timeout:   2,
 	}
 

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -69,12 +68,12 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 	}
 	defer buildResponse.Body.Close()
 
-	if log.GetLevel() == log.DebugLevel {
-		scanner := bufio.NewScanner(buildResponse.Body)
-		var info struct {
-			Stream string `json:"stream"`
-		}
-		for scanner.Scan() {
+	scanner := bufio.NewScanner(buildResponse.Body)
+	var info struct {
+		Stream string `json:"stream"`
+	}
+	for scanner.Scan() {
+		if log.GetLevel() == log.DebugLevel {
 			err := json.Unmarshal(scanner.Bytes(), &info)
 			if err != nil {
 				log.Warnf("Unmarshal failed: %s", err.Error())
@@ -88,25 +87,18 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 		}
 	}
 
+	//retry until image does not show up
 	var imageInfo *types.ImageSummary
 	filter := []string{"reference=" + name}
-	for i := 0; i < 5; i++ {
-		imageList, err := ImageList(filter)
-		if err != nil {
-			return nil, err
-		}
-		if len(imageList) != 1 {
-			log.Debugf("Image %s not found", name)
-			time.Sleep(time.Millisecond * 200)
-			continue
-		}
-		imageInfo = &imageList[0]
+	imageList, err := ImageList(filter)
+	if err != nil {
+		return nil, err
 	}
-
-	if imageInfo == nil {
+	if len(imageList) != 1 {
 		return nil, fmt.Errorf("Image %s not found, build failed", name)
 	}
 
+	imageInfo = &imageList[0]
 	log.Debugf("Built image %s [%s]", name, imageInfo.ID)
 	return imageInfo, nil
 }

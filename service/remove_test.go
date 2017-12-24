@@ -54,7 +54,7 @@ func TestRemoveAll(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	if _, err := removeFunction(client); err != nil {
+	if _, err := removeFunction(client, f1.ID); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 

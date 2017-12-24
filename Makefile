@@ -1,4 +1,4 @@
-.PHONY: deps generate build clean docker/push docker/build
+.PHONY: deps generate build clean docker/push docker/build test
 
 build=./build
 dist=./dist
@@ -30,6 +30,9 @@ build: generate
 clean:
 	rm -rf ${OUTPUT_DIR}
 	rm -rf ${DIST_DIR}
+
+test:
+	@go test ./...
 
 docker/build: build
 	echo "Building ${tag}"
