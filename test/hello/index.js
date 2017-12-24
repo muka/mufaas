@@ -1,6 +1,6 @@
 const ascii = require('ascii-art')
 
-const hello = process.argv[2] || 'fx'
+const hello = process.argv[2] || 'from function'
 
 //NOTE this is used in unit test to validate input / output
 //     (see ../../docker-api/exec_test.go)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -87,18 +88,27 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 		}
 	}
 
-	imageList, err := ImageList([]string{
-		"reference=" + name,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if len(imageList) != 1 {
-		return nil, fmt.Errorf("Image %s not found", name)
+	var imageInfo *types.ImageSummary
+	filter := []string{"reference=" + name}
+	for i := 0; i < 5; i++ {
+		imageList, err := ImageList(filter)
+		if err != nil {
+			return nil, err
+		}
+		if len(imageList) != 1 {
+			log.Debugf("Image %s not found", name)
+			time.Sleep(time.Millisecond * 200)
+			continue
+		}
+		imageInfo = &imageList[0]
 	}
 
-	log.Debugf("Built image %s [%s]", name, imageList[0].ID)
-	return &imageList[0], nil
+	if imageInfo == nil {
+		return nil, fmt.Errorf("Image %s not found, build failed", name)
+	}
+
+	log.Debugf("Built image %s [%s]", name, imageInfo.ID)
+	return imageInfo, nil
 }
 
 //ImageRemove remove an image

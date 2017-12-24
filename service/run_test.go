@@ -27,7 +27,7 @@ func TestRun(t *testing.T) {
 	log.Debugf("Created %s", addf.Name)
 	ctx := context.Background()
 	req := &api.RunRequest{
-		Name: "mufaas-test1",
+		Name: "test1",
 		Args: []string{"run", "test"},
 	}
 
