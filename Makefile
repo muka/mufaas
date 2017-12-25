@@ -38,10 +38,16 @@ test:
 
 coverage:
 	echo "mode: count" > coverage.out
+
 	go test -covermode="count" -coverprofile="coverage.tmp" ./service
 	cat coverage.tmp | grep -v "mode: count" >> coverage.out
+
 	go test -covermode="count" -coverprofile="coverage.tmp" ./docker
 	cat coverage.tmp | grep -v "mode: count" >> coverage.out
+
+	go test -covermode="count" -coverprofile="coverage.tmp" ./util
+	cat coverage.tmp | grep -v "mode: count" >> coverage.out
+
 	rm coverage.tmp
 	goveralls -service=travis-ci -coverprofile=./coverage.out
 
