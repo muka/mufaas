@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/muka/mufaas/cli"
+	"github.com/muka/mufaas/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +31,7 @@ func doBuild(t *testing.T, srcPath, imageName string) {
 		}
 	}
 
-	err = cli.CreateArchive(srcPath)
+	err = util.CreateArchive(srcPath)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,5 +1,7 @@
 /vendor
 /tmp
+/build
+/dist
 
 # Binaries for programs and plugins
 *.exe

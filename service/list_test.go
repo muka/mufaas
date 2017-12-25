@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/muka/mufaas/api"
-	"github.com/muka/mufaas/cli"
+	"github.com/muka/mufaas/util"
 	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,7 +50,7 @@ func createFunction(client api.MufaasServiceClient) (*api.FunctionInfo, error) {
 
 	dir := "../test/hello"
 
-	err := cli.CreateArchive(dir)
+	err := util.CreateArchive(dir)
 	if err != nil {
 		return nil, err
 	}
