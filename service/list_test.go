@@ -16,7 +16,9 @@ func removeFunction(client api.MufaasServiceClient, names ...string) (bool, erro
 
 	log.Debugf("Removing images: %s", names)
 	ctx := context.Background()
-	filter := []string{}
+	filter := []string{
+		"dangling=true",
+	}
 	for _, n := range names {
 		filter = append(filter, "reference=mufaas-"+n)
 	}

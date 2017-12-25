@@ -13,7 +13,10 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 		Functions: []*api.FunctionInfo{},
 	}
 
-	filter := []string{}
+	filter := []string{
+		"dangling=true",                       // only unused
+		"label=" + docker.DefaultLabel + "=1", // only if managed by us
+	}
 	for _, name := range req.Name {
 		filter = append(filter, "reference=mufaas-"+name)
 	}
