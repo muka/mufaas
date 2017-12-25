@@ -14,7 +14,7 @@ func Run(req *api.RunRequest) (*api.RunResponse, error) {
 		return nil, errors.New("Image name is empty")
 	}
 
-	imageName := "mufaas-" + req.Name
+	imageName := req.Name
 	images, err := docker.ImageList([]string{"reference=" + imageName})
 	if err != nil {
 		return nil, err

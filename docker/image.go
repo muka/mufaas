@@ -30,7 +30,7 @@ func ImageList(listFilters []string) ([]types.ImageSummary, error) {
 
 		filters.Add(filterParts[0], strings.Join(filterParts[1:], "="))
 	}
-	log.Debugf("Image filters: %++v", filters)
+	log.Debugf("Image filters: %s", filters)
 	images, err := cli.ImageList(context.Background(), types.ImageListOptions{
 		All:     true,
 		Filters: filters,
@@ -104,14 +104,12 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 }
 
 //ImageRemove remove an image
-func ImageRemove(id string) (err error) {
+func ImageRemove(id string, force bool) (err error) {
 	cli, err := getClient()
 	if err != nil {
 		return err
 	}
 	log.Debugf("Remove image %s", id)
-	_, err = cli.ImageRemove(context.Background(), id, types.ImageRemoveOptions{
-		Force: true,
-	})
+	_, err = cli.ImageRemove(context.Background(), id, types.ImageRemoveOptions{Force: force})
 	return err
 }

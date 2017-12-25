@@ -57,7 +57,7 @@ var listCmd = &cobra.Command{
 		fmt.Println("----------------------------------------------")
 		for _, f := range res.Functions {
 			id := f.ID[strings.Index(f.ID, ":")+1:][:10]
-			name := f.Name[len("mufaas-"):]
+			name := f.Name
 			name = name[:strings.Index(name, ":")]
 			fmt.Printf("%s\t%s\n", id, name)
 		}

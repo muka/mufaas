@@ -16,9 +16,14 @@ package cmd
 
 import (
 	"fmt"
-
+	"strings"
+	"golang.org/x/net/context"
+	"os"
+	"github.com/muka/mufaas/api"
 	"github.com/spf13/cobra"
 )
+
+var forceRemove *bool
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
@@ -31,20 +36,39 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("remove called")
+
+		url := cmd.Flag("url").Value.String()
+
+		c, conn, err := api.NewClient(url)
+		if err != nil {
+			fmt.Printf("Failed to connect to %s: %s", url, err.Error())
+			os.Exit(1)
+		}
+		defer conn.Close()
+
+		ctx := context.Background()
+		res, err := c.Remove(ctx, &api.RemoveRequest{Name: args, Force: *forceRemove})
+		if err != nil {
+			fmt.Printf("Request failed: %s", err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Println("ID\t\tName\t\tStatus")
+		fmt.Println("----------------------------------------------")
+		for _, f := range res.Functions {
+			id := f.ID[strings.Index(f.ID, ":")+1:][:10]
+			name := f.Name
+			status := "removed"
+			if len(f.Error) != 0 {
+				status = f.Error
+			}
+			fmt.Printf("%s\t%s\t%s\n", id, name, status)
+		}
+
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(removeCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	forceRemove = removeCmd.Flags().BoolP("force", "f", false, "Force function remove")
 }

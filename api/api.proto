@@ -24,6 +24,7 @@ message AddResponse {
 
 message RemoveRequest {
     repeated string Name = 1;
+    bool Force = 2;
 }
 
 message RemoveResponse {

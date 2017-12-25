@@ -33,7 +33,7 @@ func Add(req *api.AddRequest) (*api.AddResponse, error) {
 	if name == "" {
 		name = guid
 	}
-	imageName := "mufaas-" + name
+	imageName := name
 
 	imageInfo, err := docker.ImageBuild(imageName, archive)
 	if err != nil {

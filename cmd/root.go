@@ -20,11 +20,13 @@ import (
 	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
+var verbose *bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -54,10 +56,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mufaas.yaml)")
 
 	rootCmd.PersistentFlags().String("url", "localhost:5000", "The URL of the mufaas service")
+	verbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Show verbose output")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -85,4 +88,10 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+
+	if *verbose {
+		log.SetLevel(log.DebugLevel)
+		log.Debug("Verbose output enabled")
+	}
+
 }

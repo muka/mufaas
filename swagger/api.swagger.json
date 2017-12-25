@@ -200,6 +200,10 @@
           "items": {
             "type": "string"
           }
+        },
+        "Force": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
