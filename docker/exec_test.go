@@ -4,6 +4,8 @@ import (
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/rs/xid"
 )
 
 func TestExecNoArgs(t *testing.T) {
@@ -58,7 +60,7 @@ func TestExecWithArgs(t *testing.T) {
 
 func TestExecWithTimeout(t *testing.T) {
 
-	imageName := "mufaas/test-timeout"
+	imageName := "mufaas/test-timeout-" + xid.New().String()
 	doBuild(t, "../test/timeout", imageName)
 
 	opts := ExecOptions{

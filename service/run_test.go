@@ -27,7 +27,7 @@ func TestRun(t *testing.T) {
 	log.Debugf("Created %s", addf.Name)
 	ctx := context.Background()
 	req := &api.RunRequest{
-		Name: "test1",
+		Name: addf.Name,
 		Args: []string{"run", "test"},
 	}
 
@@ -38,7 +38,7 @@ func TestRun(t *testing.T) {
 
 	log.Printf("Out: %s", res.Output)
 
-	if _, err := removeFunction(client, addf.ID); err != nil {
+	if _, err := removeFunction(client, addf.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 

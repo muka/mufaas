@@ -8,21 +8,31 @@ import (
 
 	"github.com/muka/mufaas/api"
 	"github.com/muka/mufaas/cli"
+	"github.com/rs/xid"
+	log "github.com/sirupsen/logrus"
 )
 
-func removeFunction(client api.MufaasServiceClient, ids ...string) (bool, error) {
+func removeFunction(client api.MufaasServiceClient, names ...string) (bool, error) {
 
-	filter := []string{}
-	for _, id := range ids {
-		filter = append(filter, "reference="+id)
-	}
-
+	log.Debugf("Removing images: %s", names)
 	ctx := context.Background()
-	rmReq := &api.RemoveRequest{Filter: filter}
-	rmRes, err := client.Remove(ctx, rmReq)
-
+	filter := []string{}
+	for _, n := range names {
+		filter = append(filter, "reference=mufaas-"+n)
+	}
+	list, err := client.List(ctx, &api.ListRequest{Filter: filter})
 	if err != nil {
 		return false, err
+	}
+
+	rmReq := &api.RemoveRequest{Name: names}
+	rmRes, err := client.Remove(ctx, rmReq)
+	if err != nil {
+		return false, err
+	}
+
+	if len(rmRes.Functions) != len(list.Functions) {
+		return false, fmt.Errorf("Removed functions count not matching (rm %d = ids %d)", len(rmRes.Functions), len(list.Functions))
 	}
 
 	for _, f := range rmRes.Functions {
@@ -52,7 +62,7 @@ func createFunction(client api.MufaasServiceClient) (*api.FunctionInfo, error) {
 	addReq := &api.AddRequest{
 		Info: &api.FunctionInfo{
 			Type: "node",
-			Name: "test1",
+			Name: "test_" + xid.New().String(),
 		},
 		Source: content,
 	}
@@ -93,11 +103,9 @@ func TestList(t *testing.T) {
 	}
 
 	var found bool
-	var ids []string
 	for _, f := range listRes.Functions {
 		if f.ID == addf.ID {
 			found = true
-			ids = append(ids, f.ID)
 		}
 	}
 
@@ -106,7 +114,7 @@ func TestList(t *testing.T) {
 		t.Fail()
 	}
 
-	if _, err := removeFunction(client, ids...); err != nil {
+	if _, err := removeFunction(client, addf.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 

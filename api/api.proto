@@ -23,7 +23,7 @@ message AddResponse {
 }
 
 message RemoveRequest {
-    repeated string Filter = 1;
+    repeated string Name = 1;
 }
 
 message RemoveResponse {

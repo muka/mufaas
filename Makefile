@@ -15,6 +15,7 @@ deps:
 	go get -u google.golang.org/grpc
 	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+	go get -u github.com/mattn/goveralls
 	cd ${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway && go get ./...
 	rm -rf ./tmp/googleapis
 	mkdir -p ./tmp

@@ -34,7 +34,7 @@ func containsFunction(client api.MufaasServiceClient, ids ...string) (bool, int,
 	return true, found, nil
 }
 
-func TestRemoveAll(t *testing.T) {
+func TestRemoveMultiple(t *testing.T) {
 
 	runServer(t)
 
@@ -49,12 +49,16 @@ func TestRemoveAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("add failed: %s\n", err.Error())
 	}
+	f2, err := createFunction(client)
+	if err != nil {
+		t.Fatalf("add failed: %s\n", err.Error())
+	}
 
-	if _, _, err := containsFunction(client, f1.ID); err != nil {
+	if _, _, err := containsFunction(client, f1.ID, f2.ID); err != nil {
 		t.Fatalf(err.Error())
 	}
 
-	if _, err := removeFunction(client, f1.ID); err != nil {
+	if _, err := removeFunction(client, f1.Name, f2.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 

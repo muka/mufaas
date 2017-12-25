@@ -195,7 +195,7 @@
     "apiRemoveRequest": {
       "type": "object",
       "properties": {
-        "Filter": {
+        "Name": {
           "type": "array",
           "items": {
             "type": "string"
