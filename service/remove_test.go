@@ -58,7 +58,7 @@ func TestRemoveMultiple(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	if _, err := removeFunction(client, f1.Name, f2.Name); err != nil {
+	if _, err := removeFunction(client, true, f1.Name, f2.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 

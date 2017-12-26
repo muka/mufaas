@@ -1,7 +1,7 @@
 FROM node:slim
 
-WORKDIR /fx
-COPY . /fx
+WORKDIR /f
+COPY . /f
 RUN npm i --only=prod
 
-CMD [ "node", "/fx/index.js" ]
+CMD [ "node", "/f/index.js" ]

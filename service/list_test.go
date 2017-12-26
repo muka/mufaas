@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/muka/mufaas/api"
@@ -12,22 +14,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func removeFunction(client api.MufaasServiceClient, names ...string) (bool, error) {
+func removeFunction(client api.MufaasServiceClient, force bool, names ...string) (bool, error) {
 
 	log.Debugf("Removing images: %s", names)
 	ctx := context.Background()
-	filter := []string{
-		"dangling=true",
+	filter := []string{}
+	if !force {
+		filter = append(filter, "dangling=true")
 	}
 	for _, n := range names {
-		filter = append(filter, "reference=mufaas-"+n)
+		filter = append(filter, "reference="+n)
 	}
 	list, err := client.List(ctx, &api.ListRequest{Filter: filter})
 	if err != nil {
 		return false, err
 	}
 
-	rmReq := &api.RemoveRequest{Name: names}
+	rmReq := &api.RemoveRequest{Name: names, Force: true}
 	rmRes, err := client.Remove(ctx, rmReq)
 	if err != nil {
 		return false, err
@@ -50,7 +53,15 @@ func createFunction(client api.MufaasServiceClient) (*api.FunctionInfo, error) {
 
 	dir := "../test/hello"
 
-	err := util.CreateArchive(dir)
+	// add tmp file to trick docker build and create a new image
+	tmpFile := filepath.Join(dir, xid.New().String()+".txt")
+	err := ioutil.WriteFile(tmpFile, []byte{}, 0x755)
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(tmpFile)
+
+	err = util.CreateArchive(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +127,7 @@ func TestList(t *testing.T) {
 		t.Fail()
 	}
 
-	if _, err := removeFunction(client, addf.Name); err != nil {
+	if _, err := removeFunction(client, true, addf.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 

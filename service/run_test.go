@@ -38,7 +38,7 @@ func TestRun(t *testing.T) {
 
 	log.Printf("Out: %s", res.Output)
 
-	if _, err := removeFunction(client, addf.Name); err != nil {
+	if _, err := removeFunction(client, true, addf.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())
 	}
 
