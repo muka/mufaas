@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/muka/mufaas/api"
+	"github.com/muka/mufaas/docker"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -26,6 +27,19 @@ func TestMain(m *testing.M) {
 	if v {
 		log.SetLevel(log.DebugLevel)
 	}
+
+	f := []string{"label=mufaas=1"}
+	list, err := docker.ImageList(f)
+
+	if err != nil {
+		panic(err)
+	}
+
+	for _, image := range list {
+		docker.ImageRemove(image.ID, true)
+	}
+
+	log.Debugf("Removed previous images")
 
 	os.Exit(m.Run())
 }

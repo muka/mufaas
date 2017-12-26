@@ -33,7 +33,7 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 		return nil, err
 	}
 
-	log.Debugf("Removing %d images", len(images))
+	log.Debugf("Got %d images to remove", len(images))
 	for _, image := range images {
 
 		name := image.RepoTags[0]

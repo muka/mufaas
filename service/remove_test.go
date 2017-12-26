@@ -18,7 +18,7 @@ func containsFunction(client api.MufaasServiceClient, ids ...string) (bool, int,
 		return false, 0, err
 	}
 
-	log.Debugf("Found %d images", len(listRes.Functions))
+	log.Debugf("containsFunction: Found %d images", len(listRes.Functions))
 
 	var found int
 	for _, fn := range listRes.Functions {
@@ -29,7 +29,7 @@ func containsFunction(client api.MufaasServiceClient, ids ...string) (bool, int,
 		}
 	}
 	if found != len(ids) {
-		return false, found, errors.New("Image not found")
+		return false, found, errors.New("containsFunction: Image not found")
 	}
 	return true, found, nil
 }

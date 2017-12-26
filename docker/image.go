@@ -20,20 +20,27 @@ func ImageList(listFilters []string) ([]types.ImageSummary, error) {
 	if err != nil {
 		return nil, err
 	}
-	filters := filters.NewArgs()
-	filters.Add("label", DefaultLabel+"=1")
+	f := filters.NewArgs()
+	f.Add("label", DefaultLabel+"=1")
 	for _, filter := range listFilters {
 		filterParts := strings.Split(filter, "=")
 		if len(filterParts) < 2 {
 			return nil, fmt.Errorf("Filter `%s` should have format key=value")
 		}
 
-		filters.Add(filterParts[0], strings.Join(filterParts[1:], "="))
+		f.Add(filterParts[0], strings.Join(filterParts[1:], "="))
 	}
-	log.Debugf("Image filters: %s", filters)
+	if log.GetLevel() == log.DebugLevel {
+		strfilter, err := filters.ToParam(f)
+		if err != nil {
+			log.Warnf("Failed to convert params:, %s", err.Error())
+		} else {
+			log.Debugf("Image filters: %s", strings.Replace(strfilter, "\\\"", "\"", -1))
+		}
+	}
 	images, err := cli.ImageList(context.Background(), types.ImageListOptions{
 		All:     true,
-		Filters: filters,
+		Filters: f,
 	})
 
 	if err != nil {
