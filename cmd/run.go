@@ -16,35 +16,65 @@ package cmd
 
 import (
 	"fmt"
-
+	"time"
+	"os"
+	"context"
+	"github.com/muka/mufaas/api"
 	"github.com/spf13/cobra"
+	log "github.com/sirupsen/logrus"
 )
+
+var runRequest api.RunRequest
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Run a function",
+	Long: `Run a function providing arguments and other context information`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("run called")
+
+		if len(args) < 1 {
+			fmt.Println("Provide the function name to call")
+			os.Exit(1)
+		}
+
+		runRequest.Name = args[0]
+		runRequest.Args = args[1:]
+
+		envs := os.Environ()
+		for _, e := range envs {
+			runRequest.Env = append(runRequest.Env, e)
+		}
+
+		url := cmd.Flag("url").Value.String()
+
+		c, conn, err := api.NewClient(url)
+		if err != nil {
+			fmt.Printf("Failed to connect to %s: %s\n", url, err.Error())
+			os.Exit(1)
+		}
+		defer conn.Close()
+
+		ctx := context.Background()
+		t1 := time.Now()
+		res, err := c.Run(ctx, &runRequest)
+		if err != nil {
+			fmt.Printf("Request failed: %s\n", err.Error())
+			os.Exit(1)
+		}
+
+		t2 := time.Since(t1)
+		log.Debugf("Run took %fs", t2.Seconds())
+
+		if len(res.Err) > 0 {
+			fmt.Printf("Error: %s\n", string(res.Err))
+			os.Exit(1)
+		}
+
+		fmt.Print(string(res.Output))
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// runCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
