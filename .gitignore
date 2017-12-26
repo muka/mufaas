@@ -2,7 +2,7 @@
 /tmp
 /build
 /dist
-
+/test/*.tar
 # Binaries for programs and plugins
 *.exe
 *.dll
