@@ -22,7 +22,12 @@ func TestFailListFilter(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	doBuild(t, "../test/hello", "mufaas/hello-"+xid.New().String())
+	imageName := "mufaas/hello-" + xid.New().String()
+	imageID := doBuild(t, "../test/hello", imageName)
+	err := ImageRemove(imageID, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 // Build builds a docker image from the image directory

@@ -8,6 +8,50 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func TestRunEmptyName(t *testing.T) {
+
+	runServer(t)
+
+	client, conn, err := api.NewClient(grpcEndpoint)
+	defer stopServer(conn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	req := &api.RunRequest{
+		Name: "",
+		Args: []string{},
+	}
+	_, err = client.Run(ctx, req)
+	if err == nil {
+		t.Fatal("Expected exception with empty name")
+	}
+
+}
+
+func TestRunMissingName(t *testing.T) {
+
+	runServer(t)
+
+	client, conn, err := api.NewClient(grpcEndpoint)
+	defer stopServer(conn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	req := &api.RunRequest{
+		Name: "non-existing",
+		Args: []string{},
+	}
+	_, err = client.Run(ctx, req)
+	if err == nil {
+		t.Fatal("Expected exception with non existing image")
+	}
+
+}
+
 func TestRun(t *testing.T) {
 
 	runServer(t)

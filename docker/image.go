@@ -28,7 +28,6 @@ func ImageList(listFilters []string) ([]types.ImageSummary, error) {
 		if len(filterParts) < 2 {
 			return nil, fmt.Errorf("Filter `%s` should have format key=value")
 		}
-		fmt.Printf("%s = %s", filterParts[0], strings.Join(filterParts[1:], "="))
 		f.Add(filterParts[0], strings.Join(filterParts[1:], "="))
 	}
 	if log.GetLevel() == log.DebugLevel {
@@ -67,8 +66,12 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 
 	buildOptions := types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
-		Tags:       []string{name},
-		Labels:     map[string]string{DefaultLabel: "1"},
+		// NoCache:     true,
+		// PullParent:  false,
+		ForceRemove: true,
+		Remove:      true,
+		Tags:        []string{name},
+		Labels:      map[string]string{DefaultLabel: "1"},
 	}
 	buildResponse, buildErr := cli.ImageBuild(context.Background(), dockerBuildContext, buildOptions)
 	if buildErr != nil {

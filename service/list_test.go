@@ -17,6 +17,7 @@ import (
 func removeFunction(client api.MufaasServiceClient, force bool, names ...string) (bool, error) {
 
 	log.Debugf("removeFunction: Removing images: %s", names)
+
 	ctx := context.Background()
 	filter := []string{}
 	if !force {
@@ -30,7 +31,20 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 		return false, err
 	}
 
-	log.Debugf("removeFunction: List report %d images", len(list.Functions))
+	var imageIDs []string
+	for _, img := range list.Functions {
+		var exists bool
+		for _, imgid := range imageIDs {
+			if imgid == img.ID {
+				exists = true
+			}
+		}
+		if !exists {
+			imageIDs = append(imageIDs, img.ID)
+		}
+	}
+
+	log.Debugf("removeFunction: Found %d unique image ID", len(imageIDs))
 
 	rmReq := &api.RemoveRequest{Name: names, Force: true}
 	rmRes, err := client.Remove(ctx, rmReq)
@@ -38,10 +52,10 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 		return false, err
 	}
 
-	log.Debugf("removeFunction: Remove reported %d images", len(list.Functions))
+	log.Debugf("removeFunction: Remove reported %d images", len(rmRes.Functions))
 
-	if len(rmRes.Functions) != len(list.Functions) {
-		return false, fmt.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmRes.Functions), len(list.Functions))
+	if len(rmRes.Functions) != len(imageIDs) {
+		return false, fmt.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmRes.Functions), len(imageIDs))
 	}
 
 	for _, f := range rmRes.Functions {
