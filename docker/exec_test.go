@@ -39,12 +39,13 @@ func TestExecNoArgs(t *testing.T) {
 
 func TestExecWithArgs(t *testing.T) {
 
-	TestBuild(t)
+	uniqid := xid.New().String()
+	imageID := doBuild(t, "../test/hello", "mufaas/hello-"+uniqid)
 
 	hello := "world"
 	opts := ExecOptions{
-		Name:      "exec_test_hello_args",
-		ImageName: "mufaas/hello",
+		Name:      "exec_test_with_args_" + uniqid,
+		ImageName: "mufaas/hello-" + uniqid,
 		Args:      []string{hello},
 	}
 
@@ -64,6 +65,10 @@ func TestExecWithArgs(t *testing.T) {
 		t.Fatalf("Expecting to find `hello %s` at first line", hello)
 	}
 
+	err = ImageRemove(imageID, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestExecWithTimeout(t *testing.T) {

@@ -30,7 +30,7 @@ func doBuild(t *testing.T, srcPath, imageName string) string {
 
 	var err error
 
-	//HACK: for some reason docker complain about the symlink in node_modules/.bin
+	//HACK: docker complain about the symlink in node_modules/.bin
 	dotbin := srcPath + "/node_modules/.bin"
 	if _, serr := os.Stat(dotbin); !os.IsNotExist(serr) {
 		err = os.RemoveAll(dotbin)

@@ -3,6 +3,10 @@
 /build
 /dist
 /test/*.tar
+/test/hello/*.txt
+/coverage.tmp
+/coverage.out
+
 # Binaries for programs and plugins
 *.exe
 *.dll
