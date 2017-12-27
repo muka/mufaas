@@ -68,11 +68,12 @@ func TestExecWithArgs(t *testing.T) {
 
 func TestExecWithTimeout(t *testing.T) {
 
-	imageName := "mufaas/test-timeout-" + xid.New().String()
+	uniqid := xid.New().String()
+	imageName := "mufaas/test-timeout-" + uniqid
 	doBuild(t, "../test/timeout", imageName)
 
 	opts := ExecOptions{
-		Name:      "exec_test_timeout",
+		Name:      "exec_test_timeout_" + uniqid,
 		ImageName: imageName,
 		Args:      []string{"timeout"},
 		Timeout:   2,

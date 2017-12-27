@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/muka/mufaas/util"
+	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,8 +14,15 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestFailListFilter(t *testing.T) {
+	_, err := ImageList([]string{"foo,bar"})
+	if err == nil {
+		t.Fatal("Filter error expected")
+	}
+}
+
 func TestBuild(t *testing.T) {
-	doBuild(t, "../test/hello", "mufaas/hello")
+	doBuild(t, "../test/hello", "mufaas/hello-"+xid.New().String())
 }
 
 // Build builds a docker image from the image directory
