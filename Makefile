@@ -28,7 +28,7 @@ generate:
 
 build:
 	mkdir -p ${build_dir}
-	CGO_ENABLED=0 go build -o ${build_dir}/mufaas mufaas.go
+	CGO_ENABLED=0 go build -o ${build_dir}/mufaas main.go
 
 clean:
 	rm -rf ${build_dir}

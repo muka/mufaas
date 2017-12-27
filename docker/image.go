@@ -94,7 +94,6 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 		}
 	}
 
-	//retry until image does not show up
 	var imageInfo *types.ImageSummary
 	filter := []string{"reference=" + name}
 	imageList, err := ImageList(filter)

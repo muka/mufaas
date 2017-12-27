@@ -18,7 +18,7 @@ func TestBuild(t *testing.T) {
 }
 
 // Build builds a docker image from the image directory
-func doBuild(t *testing.T, srcPath, imageName string) {
+func doBuild(t *testing.T, srcPath, imageName string) string {
 
 	var err error
 
@@ -36,7 +36,7 @@ func doBuild(t *testing.T, srcPath, imageName string) {
 		t.Fatal(err)
 	}
 
-	_, err = ImageBuild(imageName, srcPath+".tar")
+	info, err := ImageBuild(imageName, srcPath+".tar")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,4 +51,5 @@ func doBuild(t *testing.T, srcPath, imageName string) {
 		t.Fatal("Found 0 images")
 	}
 
+	return info.ID
 }

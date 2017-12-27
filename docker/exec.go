@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/rs/xid"
+	log "github.com/sirupsen/logrus"
 )
 
 var defaultTimeout int64 = 3
@@ -92,7 +93,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		cmd = append(opts.Cmd, opts.Args...)
 	}
 
-	fmt.Printf("Creating container %s (from %s)\n", containerName, opts.ImageName)
+	log.Debugf("Creating container %s (from %s)\n", containerName, opts.ImageName)
 	containerConfig := &container.Config{
 		Cmd:          cmd,
 		Env:          opts.Env,
@@ -108,7 +109,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	}
 
 	hostConfig := &container.HostConfig{
-		AutoRemove: true,
+		AutoRemove: false,
 	}
 	netConfig := &network.NetworkingConfig{}
 	resp, cerr := cli.ContainerCreate(ctx, containerConfig, hostConfig, netConfig, containerName)
@@ -117,6 +118,12 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	}
 
 	containerID := resp.ID
+	log.Debugf("Created container %s", containerID)
+
+	startConfig := types.ContainerStartOptions{}
+	if err = cli.ContainerStart(ctx, containerID, startConfig); err != nil {
+		return nil, err
+	}
 
 	attachConfig := types.ContainerAttachOptions{
 		Logs:   false,
@@ -130,12 +137,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		return nil, err
 	}
 
-	startConfig := types.ContainerStartOptions{}
-	if err = cli.ContainerStart(ctx, containerID, startConfig); err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("Started %s\n", containerID)
+	log.Debugf("Started %s\n", containerID)
 
 	wait := make(chan bool, 1)
 
@@ -144,7 +146,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		time.Sleep(d)
 		kerr := Kill(containerID)
 		if kerr != nil {
-			fmt.Printf("Error on kill: %s", kerr.Error())
+			log.Debugf("Error on kill: %s", kerr.Error())
 		}
 		wait <- true
 	}()
@@ -171,15 +173,19 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	_, berr := io.Copy(&outBuffer, conn.Reader)
 	if berr != nil {
 		if berr != io.EOF {
-			fmt.Printf("Fail stdout copy: %s\n", berr.Error())
+			log.Debugf("Fail stdout copy: %s\n", berr.Error())
 		}
 	}
 
 	defer conn.Close()
 
+	err = Remove(containerID)
+	if err != nil {
+		log.Debugf("Remove err: %s", err.Error())
+	}
+
 	return &ExecResult{
-		ID:     containerID,
 		Stdout: &outBuffer,
 		Stderr: nil,
-	}, err
+	}, nil
 }

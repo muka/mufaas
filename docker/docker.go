@@ -1,9 +1,11 @@
 package docker
 
 import (
-	"github.com/docker/docker/client"
-
 	"context"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	log "github.com/sirupsen/logrus"
 )
 
 const DefaultLabel = "mufaas"
@@ -30,9 +32,20 @@ func getClient() (*client.Client, error) {
 
 // Kill a running container
 func Kill(containerID string) (err error) {
+	log.Debugf("Kill container %s", containerID)
 	cli, err := getClient()
 	if err != nil {
 		return err
 	}
 	return cli.ContainerKill(context.Background(), containerID, "")
+}
+
+// Remove a container
+func Remove(containerID string) (err error) {
+	log.Debugf("Remove container %s", containerID)
+	cli, err := getClient()
+	if err != nil {
+		return err
+	}
+	return cli.ContainerRemove(context.Background(), containerID, types.ContainerRemoveOptions{Force: true})
 }

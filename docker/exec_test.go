@@ -1,20 +1,23 @@
 package docker
 
 import (
-	"log"
 	"strings"
 	"testing"
 
 	"github.com/rs/xid"
+	log "github.com/sirupsen/logrus"
 )
 
 func TestExecNoArgs(t *testing.T) {
 
-	TestBuild(t)
+	uniqid := xid.New().String()
+	imageID := doBuild(t, "../test/hello", "mufaas/hello-"+uniqid)
+
+	log.Debugf("Created image %s", imageID)
 
 	opts := ExecOptions{
-		Name:      "exec_test_hello",
-		ImageName: "mufaas/hello",
+		Name:      "exec_noargs_" + uniqid,
+		ImageName: "mufaas/hello-" + uniqid,
 	}
 
 	res, err := Exec(opts)
@@ -26,7 +29,12 @@ func TestExecNoArgs(t *testing.T) {
 		t.Fatal("Unexpected empty output")
 	}
 
-	log.Printf("Out: \n\n%s", res.Stdout.String())
+	err = ImageRemove(imageID, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Debugf("Out: \n\n%s", res.Stdout.String())
 }
 
 func TestExecWithArgs(t *testing.T) {
@@ -49,7 +57,7 @@ func TestExecWithArgs(t *testing.T) {
 		t.Fatal("Unexpected empty output")
 	}
 
-	log.Printf("Out: \n\n%s", res.Stdout.String())
+	log.Debugf("Out: \n\n%s", res.Stdout.String())
 
 	lines := strings.Split(res.Stdout.String(), "\n")
 	if !strings.Contains(lines[0], hello) {
@@ -79,6 +87,6 @@ func TestExecWithTimeout(t *testing.T) {
 		t.Fatal("Unexpected empty output")
 	}
 
-	log.Printf("Out: \n\n%s", res.Stdout.String())
+	log.Debugf("Out: \n\n%s", res.Stdout.String())
 
 }
