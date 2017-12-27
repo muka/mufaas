@@ -9,6 +9,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func TestCreateArchiveNonExistantDir(t *testing.T) {
+
+	err := CreateArchive("/foo")
+	if err == nil {
+		t.Fatal("Expeceted to fail creation")
+	}
+}
+
 func TestCreateArchive(t *testing.T) {
 
 	root, err := ioutil.TempDir("", "test")
