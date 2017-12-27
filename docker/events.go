@@ -43,7 +43,6 @@ func watchEvents() error {
 			if &event != nil {
 
 				if event.Actor.Attributes != nil {
-
 					name := event.Actor.Attributes["name"]
 					ev := ContainerEvent{
 						Action:  event.Action,
@@ -52,7 +51,6 @@ func watchEvents() error {
 						Message: event,
 					}
 					eventsChannel <- ev
-
 				}
 			}
 		case err := <-errChan:

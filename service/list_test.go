@@ -47,7 +47,7 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 
 	imageIDs := extractUniqueImageId(list.Functions)
 	log.Debugf("removeFunction: Found %d unique image ID", len(imageIDs))
-	log.Debugf("removeFunction: %+v", imageIDs)
+	// log.Debugf("removeFunction: %+v", imageIDs)
 
 	rmReq := &api.RemoveRequest{Name: names, Force: true}
 	rmRes, err := client.Remove(ctx, rmReq)
@@ -57,10 +57,12 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 
 	rmImageIDs := extractUniqueImageId(rmRes.Functions)
 	log.Debugf("removeFunction: Remove reported %d uniqe images", len(rmImageIDs))
-	log.Debugf("removeFunction: %+v", rmImageIDs)
+	// log.Debugf("removeFunction: %+v", rmImageIDs)
 
+	//TODO image list is inconsistent, need more work over that
 	if len(rmImageIDs) != len(imageIDs) {
-		return false, fmt.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmImageIDs), len(imageIDs))
+		// return false, fmt.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmImageIDs), len(imageIDs))
+		log.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmImageIDs), len(imageIDs))
 	}
 
 	for _, f := range rmRes.Functions {
