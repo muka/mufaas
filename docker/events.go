@@ -41,7 +41,7 @@ func watchEvents() error {
 		select {
 		case event := <-msgChan:
 			if &event != nil {
-
+				// log.Debugf("********* event \n\n%++v\n\n", event)
 				if event.Actor.Attributes != nil {
 					name := event.Actor.Attributes["name"]
 					ev := ContainerEvent{

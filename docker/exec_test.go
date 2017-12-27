@@ -75,7 +75,7 @@ func TestExecWithTimeout(t *testing.T) {
 
 	uniqid := xid.New().String()
 	imageName := "mufaas/test-timeout-" + uniqid
-	doBuild(t, "../test/timeout", imageName)
+	imageID := doBuild(t, "../test/timeout", imageName)
 
 	opts := ExecOptions{
 		Name:      "exec_test_timeout_" + uniqid,
@@ -94,5 +94,10 @@ func TestExecWithTimeout(t *testing.T) {
 	}
 
 	log.Debugf("Out: \n\n%s", res.Stdout.String())
+
+	err = ImageRemove(imageID, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 }

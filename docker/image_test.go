@@ -6,13 +6,7 @@ import (
 
 	"github.com/muka/mufaas/util"
 	"github.com/rs/xid"
-	log "github.com/sirupsen/logrus"
 )
-
-func TestMain(m *testing.M) {
-	log.SetLevel(log.DebugLevel)
-	os.Exit(m.Run())
-}
 
 func TestFailListFilter(t *testing.T) {
 	_, err := ImageList([]string{"foo,bar"})

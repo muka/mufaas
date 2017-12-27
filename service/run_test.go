@@ -80,7 +80,7 @@ func TestRun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Printf("Out: %s", res.Output)
+	log.Debugf("Out: %s", res.Output)
 
 	if _, err := removeFunction(client, true, addf.Name); err != nil {
 		t.Fatalf("Failed to remove functions: %s\n", err.Error())

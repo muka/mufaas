@@ -17,14 +17,7 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 
 	forceRemove := req.Force
 
-	filter := []string{
-		"label=" + docker.DefaultLabel + "=1", // only if managed by us
-	}
-
-	// if !forceRemove { // only unused by container, otherwise an issue may arise
-	// 	filter = append(filter, "dangling=true")
-	// }
-
+	filter := []string{}
 	for _, name := range req.Name {
 		filter = append(filter, "reference="+name)
 	}

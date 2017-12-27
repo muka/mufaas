@@ -120,6 +120,9 @@ func ImageRemove(id string, force bool) (err error) {
 		return err
 	}
 	log.Debugf("Remove image %s", id)
-	_, err = cli.ImageRemove(context.Background(), id, types.ImageRemoveOptions{Force: force})
+	_, err = cli.ImageRemove(context.Background(), id, types.ImageRemoveOptions{
+		Force:         force,
+		PruneChildren: force,
+	})
 	return err
 }
