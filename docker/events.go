@@ -2,7 +2,8 @@ package docker
 
 import (
 	"context"
-	"fmt"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
@@ -15,7 +16,6 @@ type ContainerEvent struct {
 	Name    string
 	Action  string
 	Message events.Message
-	Error   error
 }
 
 var eventsChannel = make(chan ContainerEvent)
@@ -42,19 +42,9 @@ func watchEvents() error {
 		case event := <-msgChan:
 			if &event != nil {
 
-				// fmt.Printf("Event recieved: %s %s ", event.Action, event.Type)
 				if event.Actor.Attributes != nil {
 
 					name := event.Actor.Attributes["name"]
-					switch event.Action {
-					case "start":
-						// fmt.Printf("Container started %s", name)
-						break
-					case "die":
-						// fmt.Printf("Container exited %s", name)
-						break
-					}
-
 					ev := ContainerEvent{
 						Action:  event.Action,
 						ID:      event.ID,
@@ -67,11 +57,7 @@ func watchEvents() error {
 			}
 		case err := <-errChan:
 			if err != nil {
-				fmt.Printf("Error event recieved: %s", err.Error())
-				ev := ContainerEvent{
-					Error: err,
-				}
-				eventsChannel <- ev
+				log.Warnf("Error event recieved: %s", err.Error())
 			}
 		}
 	}
