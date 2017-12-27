@@ -64,7 +64,9 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 	for _, image := range images {
 		log.Debugf("Remove dangling image %s", image.ID)
 		err := docker.ImageRemove(image.ID, true)
-		log.Warnf("Failed to remove %s: %s", image.ID, err.Error())
+		if err != nil {
+			log.Warnf("Failed to remove %s: %s", image.ID, err.Error())
+		}
 	}
 
 	return res, nil
