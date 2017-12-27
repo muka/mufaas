@@ -19,10 +19,8 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 	log.Debugf("removeFunction: Removing images: %s", names)
 
 	ctx := context.Background()
+
 	filter := []string{}
-	if !force {
-		filter = append(filter, "dangling=true")
-	}
 	for _, n := range names {
 		filter = append(filter, "reference="+n)
 	}
@@ -31,20 +29,25 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 		return false, err
 	}
 
-	var imageIDs []string
-	for _, img := range list.Functions {
-		var exists bool
-		for _, imgid := range imageIDs {
-			if imgid == img.ID {
-				exists = true
+	var extractUniqueImageId = func(funcs []*api.FunctionInfo) []string {
+		var imageIDs []string
+		for _, img := range funcs {
+			var exists bool
+			for _, imgid := range imageIDs {
+				if imgid == img.ID {
+					exists = true
+				}
+			}
+			if !exists {
+				imageIDs = append(imageIDs, img.ID)
 			}
 		}
-		if !exists {
-			imageIDs = append(imageIDs, img.ID)
-		}
+		return imageIDs
 	}
 
+	imageIDs := extractUniqueImageId(list.Functions)
 	log.Debugf("removeFunction: Found %d unique image ID", len(imageIDs))
+	log.Debugf("removeFunction: %+v", imageIDs)
 
 	rmReq := &api.RemoveRequest{Name: names, Force: true}
 	rmRes, err := client.Remove(ctx, rmReq)
@@ -52,10 +55,12 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 		return false, err
 	}
 
-	log.Debugf("removeFunction: Remove reported %d images", len(rmRes.Functions))
+	rmImageIDs := extractUniqueImageId(rmRes.Functions)
+	log.Debugf("removeFunction: Remove reported %d uniqe images", len(rmImageIDs))
+	log.Debugf("removeFunction: %+v", rmImageIDs)
 
-	if len(rmRes.Functions) != len(imageIDs) {
-		return false, fmt.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmRes.Functions), len(imageIDs))
+	if len(rmImageIDs) != len(imageIDs) {
+		return false, fmt.Errorf("removeFunction: Removed functions count not matching (rm %d = ids %d)", len(rmImageIDs), len(imageIDs))
 	}
 
 	for _, f := range rmRes.Functions {
