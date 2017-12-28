@@ -1,8 +1,6 @@
 package service
 
 import (
-	"strings"
-
 	"github.com/muka/mufaas/api"
 	"github.com/muka/mufaas/docker"
 	log "github.com/sirupsen/logrus"
@@ -19,26 +17,24 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 
 	filter := []string{}
 	for _, name := range req.Name {
-		filter = append(filter, "reference="+name)
+		filter = append(filter, "name="+name)
 	}
 
-	images, err := docker.ImageList(filter)
+	containers, err := docker.List(filter)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf("Got %d images to remove", len(images))
-	for _, image := range images {
+	log.Debugf("Got %d containers to remove", len(containers))
+	for _, container := range containers {
 
-		name := image.RepoTags[0]
-		name = name[:strings.Index(name, ":")]
-
+		name := container.Names[0]
 		r := &api.FunctionInfo{
-			ID:   image.ID,
+			ID:   container.ID,
 			Name: name,
 		}
-		log.Debugf("Remove image %s", image.ID)
-		err := docker.ImageRemove(image.ID, forceRemove)
+		log.Debugf("Remove container %s", container.ID)
+		err := docker.Remove(container.ID, forceRemove)
 		if err != nil {
 			r.Error = err.Error()
 		}
@@ -50,7 +46,7 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 		"label=" + docker.DefaultLabel + "=1", // only if managed by us
 		"dangling=true",
 	}
-	images, err = docker.ImageList(filter)
+	images, err := docker.ImageList(filter)
 	if err != nil {
 		return nil, err
 	}

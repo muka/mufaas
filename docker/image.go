@@ -20,15 +20,9 @@ func ImageList(listFilters []string) ([]types.ImageSummary, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	f := filters.NewArgs()
-	f.Add("label", DefaultLabel+"=1")
-	for _, filter := range listFilters {
-		filterParts := strings.Split(filter, "=")
-		if len(filterParts) < 2 {
-			return nil, fmt.Errorf("Filter `%s` should have format key=value")
-		}
-		f.Add(filterParts[0], strings.Join(filterParts[1:], "="))
+	f, err := buildFilter(listFilters)
+	if err != nil {
+		return nil, err
 	}
 	if log.GetLevel() == log.DebugLevel {
 		strfilter, err := filters.ToParam(f)

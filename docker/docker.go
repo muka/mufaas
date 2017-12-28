@@ -1,11 +1,11 @@
 package docker
 
 import (
-	"context"
+	"fmt"
+	"strings"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	log "github.com/sirupsen/logrus"
 )
 
 const DefaultLabel = "mufaas"
@@ -30,22 +30,15 @@ func getClient() (*client.Client, error) {
 	return dockerClient, err
 }
 
-// Kill a running container
-func Kill(containerID string) (err error) {
-	log.Debugf("Kill container %s", containerID)
-	cli, err := getClient()
-	if err != nil {
-		return err
+func buildFilter(listFilters []string) (filters.Args, error) {
+	f := filters.NewArgs()
+	f.Add("label", DefaultLabel+"=1")
+	for _, filter := range listFilters {
+		filterParts := strings.Split(filter, "=")
+		if len(filterParts) < 2 {
+			return f, fmt.Errorf("Filter `%s` should have format key=value")
+		}
+		f.Add(filterParts[0], strings.Join(filterParts[1:], "="))
 	}
-	return cli.ContainerKill(context.Background(), containerID, "")
-}
-
-// Remove a container
-func Remove(containerID string) (err error) {
-	log.Debugf("Remove container %s", containerID)
-	cli, err := getClient()
-	if err != nil {
-		return err
-	}
-	return cli.ContainerRemove(context.Background(), containerID, types.ContainerRemoveOptions{Force: true})
+	return f, nil
 }

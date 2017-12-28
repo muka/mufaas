@@ -2,18 +2,14 @@ package docker
 
 import (
 	"bytes"
+	"errors"
 	"io"
-	"regexp"
 	"time"
 
 	"context"
 	"fmt"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/network"
-	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,14 +17,14 @@ var defaultTimeout int64 = 3
 
 //ExecOptions control how a container is executed
 type ExecOptions struct {
-	Name      string
-	Cmd       []string
-	Env       []string
-	Stdin     []byte
-	Args      []string
-	ImageName string
+	Name  string
+	Cmd   []string
+	Env   []string
+	Stdin []byte
+	Args  []string
 	// Timeout in second to stop the container
 	Timeout int64
+	Remove  bool
 }
 
 //ExecResult return the execution results
@@ -40,85 +36,34 @@ type ExecResult struct {
 
 // Exec spawn a container and wait for its output
 func Exec(opts ExecOptions) (*ExecResult, error) {
+
+	if len(opts.Name) == 0 {
+		return nil, errors.New("Function name is empty")
+	}
+
 	cli, err := getClient()
 	if err != nil {
 		return nil, err
 	}
-
-	ctx := context.Background()
 
 	// set default TTL
 	if opts.Timeout == 0 {
 		opts.Timeout = defaultTimeout
 	}
 
-	containerName := xid.New().String()
-	if opts.Name != "" {
-		containerName = opts.Name
-		reg, rerr := regexp.Compile("[^a-zA-Z0-9]+")
-		if rerr != nil {
-			return nil, rerr
-		}
-		containerName = reg.ReplaceAllString(containerName, "")
+	ctx := context.Background()
+	containerName := opts.Name
+
+	containers, err := List([]string{"name=" + containerName})
+	if err != nil {
+		return nil, err
 	}
 
-	containerName = fmt.Sprintf("mufaas-%s", containerName)
-
-	var cmd []string
-	if len(opts.Cmd) == 0 {
-		imgfilter := filters.NewArgs()
-		imgfilter.Add("reference", opts.ImageName)
-		listOptions := types.ImageListOptions{
-			All:     true,
-			Filters: imgfilter,
-		}
-		var imageID string
-		imageList, ilerr := cli.ImageList(ctx, listOptions)
-		if ilerr != nil {
-			return nil, ilerr
-		}
-		if len(imageList) == 1 {
-			imageID = imageList[0].ID
-		} else {
-			return nil, fmt.Errorf("Image not found %s", opts.ImageName)
-		}
-
-		imageInfo, _, iierr := cli.ImageInspectWithRaw(ctx, imageID)
-		if iierr != nil {
-			return nil, iierr
-		}
-
-		cmd = append(imageInfo.Config.Cmd, opts.Args...)
-	} else {
-		cmd = append(opts.Cmd, opts.Args...)
+	if len(containers) != 1 {
+		return nil, fmt.Errorf("Function %s not found", containerName)
 	}
 
-	log.Debugf("Creating container %s (from %s)\n", containerName, opts.ImageName)
-	containerConfig := &container.Config{
-		Cmd:          cmd,
-		Env:          opts.Env,
-		Image:        opts.ImageName,
-		AttachStdin:  false,
-		AttachStderr: true,
-		AttachStdout: true,
-		Tty:          true,
-		StdinOnce:    true,
-		Labels: map[string]string{
-			DefaultLabel: "1",
-		},
-	}
-
-	hostConfig := &container.HostConfig{
-		AutoRemove: false,
-	}
-	netConfig := &network.NetworkingConfig{}
-	resp, cerr := cli.ContainerCreate(ctx, containerConfig, hostConfig, netConfig, containerName)
-	if cerr != nil {
-		return nil, cerr
-	}
-
-	containerID := resp.ID
-	log.Debugf("Created container %s", containerID)
+	containerID := containers[0].ID
 
 	startConfig := types.ContainerStartOptions{}
 	if err = cli.ContainerStart(ctx, containerID, startConfig); err != nil {
@@ -137,7 +82,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		return nil, err
 	}
 
-	log.Debugf("Started %s\n", containerID)
+	log.Debugf("Started %s", containerName)
 
 	wait := make(chan bool, 1)
 
@@ -179,9 +124,11 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 
 	defer conn.Close()
 
-	err = Remove(containerID)
-	if err != nil {
-		log.Debugf("Remove err: %s", err.Error())
+	if opts.Remove {
+		err = Remove(containerID, true)
+		if err != nil {
+			log.Debugf("Remove err: %s", err.Error())
+		}
 	}
 
 	return &ExecResult{

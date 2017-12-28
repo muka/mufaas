@@ -8,8 +8,10 @@ message FunctionInfo {
 	string ID   = 1;
 	string Name = 2;
 	string Type = 3;
-	string Cmd  = 4;
+	repeated string Cmd  = 4;
 	string Error = 5;
+	repeated string Env  = 6;
+	bool Privileged  = 7;
 }
 
 message AddRequest {

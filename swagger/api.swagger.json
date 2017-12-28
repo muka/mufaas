@@ -163,10 +163,23 @@
           "type": "string"
         },
         "Cmd": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "Error": {
           "type": "string"
+        },
+        "Env": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Privileged": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },

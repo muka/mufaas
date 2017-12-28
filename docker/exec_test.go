@@ -4,21 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
 )
 
 func TestExecNoArgs(t *testing.T) {
 
-	uniqid := xid.New().String()
-	imageID := doBuild(t, "../test/hello", "mufaas/hello-"+uniqid)
-
-	log.Debugf("Created image %s", imageID)
-
-	opts := ExecOptions{
-		Name:      "exec_noargs_" + uniqid,
-		ImageName: "mufaas/hello-" + uniqid,
-	}
+	info := createContainer(t, "hello")
+	opts := ExecOptions{Name: info.Name}
 
 	res, err := Exec(opts)
 	if err != nil {
@@ -29,24 +21,18 @@ func TestExecNoArgs(t *testing.T) {
 		t.Fatal("Unexpected empty output")
 	}
 
-	err = ImageRemove(imageID, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	removeContainer(t, info.ID)
+	removeImage(t, info.ImageID)
 
 	log.Debugf("Out: \n\n%s", res.Stdout.String())
 }
 
 func TestExecWithArgs(t *testing.T) {
 
-	uniqid := xid.New().String()
-	imageID := doBuild(t, "../test/hello", "mufaas/hello-"+uniqid)
-
-	hello := "world"
+	info := createContainer(t, "hello")
 	opts := ExecOptions{
-		Name:      "exec_test_with_args_" + uniqid,
-		ImageName: "mufaas/hello-" + uniqid,
-		Args:      []string{hello},
+		Name: info.Name,
+		Args: []string{info.ImageName},
 	}
 
 	res, err := Exec(opts)
@@ -61,27 +47,22 @@ func TestExecWithArgs(t *testing.T) {
 	log.Debugf("Out: \n\n%s", res.Stdout.String())
 
 	lines := strings.Split(res.Stdout.String(), "\n")
-	if !strings.Contains(lines[0], hello) {
-		t.Fatalf("Expecting to find `hello %s` at first line", hello)
+	if !strings.Contains(lines[0], info.ImageName) {
+		t.Fatalf("Expecting to find `hello %s` at first line", info.ImageName)
 	}
 
-	err = ImageRemove(imageID, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	removeContainer(t, info.ID)
+	removeImage(t, info.ImageID)
+
 }
 
 func TestExecWithTimeout(t *testing.T) {
 
-	uniqid := xid.New().String()
-	imageName := "mufaas/test-timeout-" + uniqid
-	imageID := doBuild(t, "../test/timeout", imageName)
-
+	info := createContainer(t, "timeout")
 	opts := ExecOptions{
-		Name:      "exec_test_timeout_" + uniqid,
-		ImageName: imageName,
-		Args:      []string{"timeout"},
-		Timeout:   2,
+		Name:    info.Name,
+		Args:    []string{"timeout"},
+		Timeout: 2,
 	}
 
 	res, err := Exec(opts)
@@ -93,11 +74,9 @@ func TestExecWithTimeout(t *testing.T) {
 		t.Fatal("Unexpected empty output")
 	}
 
-	log.Debugf("Out: \n\n%s", res.Stdout.String())
+	removeContainer(t, info.ID)
+	removeImage(t, info.ImageID)
 
-	err = ImageRemove(imageID, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	log.Debugf("Out: \n\n%s", res.Stdout.String())
 
 }

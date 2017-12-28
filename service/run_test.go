@@ -30,7 +30,7 @@ func TestRunEmptyName(t *testing.T) {
 
 }
 
-func TestRunMissingName(t *testing.T) {
+func TestRunMissingFunction(t *testing.T) {
 
 	runServer(t)
 
