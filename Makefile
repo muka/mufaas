@@ -1,6 +1,7 @@
 .PHONY: build deps generate clean test coverage docker/push docker/build
 
 build_dir=./build
+bin_dir=./bin
 
 dockerName := opny/mufaas
 
@@ -29,6 +30,8 @@ generate:
 build:
 	mkdir -p ${build_dir}
 	CGO_ENABLED=0 go build -o ${build_dir}/mufaas main.go
+	CGO_ENABLED=0 go build -o ${bin_dir}/idle idle/idle.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o ${bin_dir}/idle-arm idle/idle.go
 
 clean:
 	rm -rf ${build_dir}
