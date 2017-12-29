@@ -99,21 +99,15 @@ func doBuild(t *testing.T, srcPath, imageName string) string {
 
 	var err error
 
-	//HACK: docker complain about the symlink in node_modules/.bin
-	dotbin := srcPath + "/node_modules/.bin"
-	if _, serr := os.Stat(dotbin); !os.IsNotExist(serr) {
-		err = os.RemoveAll(dotbin)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	err = util.CreateArchive(srcPath)
+	err = util.CreateTar(srcPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	info, err := ImageBuild(imageName, srcPath+".tar")
+	info, err := ImageBuild(ImageBuildOptions{
+		Name:    imageName,
+		Archive: srcPath + ".tar",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
