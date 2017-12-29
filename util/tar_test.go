@@ -10,7 +10,6 @@ import (
 )
 
 func TestCreateArchiveNonExistantDir(t *testing.T) {
-
 	err := CreateTar("/foo")
 	if err == nil {
 		t.Fatal("Expeceted to fail creation")

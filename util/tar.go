@@ -42,7 +42,3 @@ func CreateTar(dir string) error {
 func ExtractTar(archive, dst string) error {
 	return archiver.Tar.Open(archive, dst)
 }
-
-func CreateArchive(dir string) error {
-	return archiver.Tar.Make(dir+".tar", []string{dir})
-}
