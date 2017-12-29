@@ -28,7 +28,7 @@ generate: bindata
 	go generate ./api/api.go
 
 bindata: build-idle
-	go-bindata -pkg asset -o asset/bindata.go -ignore=idle.go ./idle
+	go-bindata -pkg asset -o asset/bindata.go -ignore=idle.go ./idle/bin
 
 build:
 	mkdir -p ${build_dir}
