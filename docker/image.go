@@ -2,16 +2,31 @@ package docker
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/muka/mufaas/asset"
+	"github.com/muka/mufaas/util"
 	log "github.com/sirupsen/logrus"
 )
+
+type ImageBuildOptions struct {
+	Name       string
+	Archive    string
+	Dockerfile string
+	Labels     map[string]string
+}
 
 // List return built images, filtered by a list of docker
 // compatible filters (key=value) eg. [id=..., name=...]
@@ -43,8 +58,133 @@ func ImageList(listFilters []string) ([]types.ImageSummary, error) {
 	return images, nil
 }
 
+func parseDockerfile(opts ImageBuildOptions) (string, error) {
+
+	//extract
+	dst, err := ioutil.TempDir("", "mufaas_build")
+	defer os.Remove(dst)
+	if err != nil {
+		return "", err
+	}
+
+	log.Debugf("Extract archive %s", dst)
+	err = util.ExtractTar(opts.Archive, dst)
+	if err != nil {
+		return "", err
+	}
+
+	// read Dockerfile
+	dockerFile := filepath.Join(dst, opts.Dockerfile)
+	log.Debugf("Read %s", dockerFile)
+	b, err := ioutil.ReadFile(dockerFile)
+	if err != nil {
+		return "", err
+	}
+
+	// get idle bin from assets
+	log.Debugf("Current GOARCH %s", runtime.GOARCH)
+	assetName := "idle/bin/idle"
+	switch runtime.GOARCH {
+	case "arm":
+	case "arm64":
+	case "amd64":
+		assetName += "-" + runtime.GOARCH
+		break
+	default:
+		return "", fmt.Errorf("Architecture `%s` not supported, idle binaries may need to be regenerated.", runtime.GOARCH)
+	}
+
+	idleDest := filepath.Join(dst, "idle")
+	assetData, err := asset.Asset(assetName)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := os.Stat(idleDest); err == nil {
+		fmt.Print("Drop idle")
+		err := os.Remove(idleDest)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	//Create idle
+	err = ioutil.WriteFile(idleDest, assetData, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	w := bufio.NewWriter(&buf)
+	r := bufio.NewReader(bytes.NewReader(b))
+	line, err := r.ReadString('\n')
+	for err == nil {
+		if len(line) > 3 {
+			if strings.ToUpper(line[:3]) == "CMD" {
+				_, err := w.WriteString("\nADD ./idle /idle\nCMD [\"/idle\"]\n")
+				if err != nil {
+					return "", err
+				}
+			} else {
+				_, err := w.WriteString(line)
+				if err != nil {
+					return "", err
+				}
+			}
+		}
+		line, err = r.ReadString('\n')
+	}
+	if err != io.EOF {
+		if err != nil {
+			return "", err
+		}
+	}
+
+	err = w.Flush()
+	if err != nil {
+		return "", err
+	}
+
+	err = ioutil.WriteFile(dockerFile, buf.Bytes(), 0644)
+	if err != nil {
+		return "", err
+	}
+
+	err = util.CreateTar(dst)
+	if err != nil {
+		return "", err
+	}
+
+	return dst + ".tar", nil
+}
+
 // ImageBuild builds a docker image from the image directory
-func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
+func ImageBuild(opts ImageBuildOptions) (*types.ImageSummary, error) {
+
+	name := opts.Name
+	if name == "" {
+		return nil, errors.New("Image name not provided")
+	}
+
+	archive := opts.Archive
+	if _, err := os.Stat(archive); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	if opts.Dockerfile == "" {
+		opts.Dockerfile = "Dockerfile"
+	}
+
+	if opts.Labels == nil {
+		opts.Labels = make(map[string]string)
+	}
+	opts.Labels[DefaultLabel] = "1"
+
+	archive, err := parseDockerfile(opts)
+	if err != nil {
+		return nil, err
+	}
+
 	cli, err := getClient()
 	if err != nil {
 		return nil, err
@@ -59,13 +199,13 @@ func ImageBuild(name string, archive string) (*types.ImageSummary, error) {
 	defer dockerBuildContext.Close()
 
 	buildOptions := types.ImageBuildOptions{
-		Dockerfile: "Dockerfile",
+		Dockerfile: opts.Dockerfile,
 		// NoCache:     true,
 		// PullParent:  false,
 		ForceRemove: true,
 		Remove:      true,
 		Tags:        []string{name},
-		Labels:      map[string]string{DefaultLabel: "1"},
+		Labels:      opts.Labels,
 	}
 	buildResponse, buildErr := cli.ImageBuild(context.Background(), dockerBuildContext, buildOptions)
 	if buildErr != nil {
