@@ -18,6 +18,7 @@ message AddRequest {
     FunctionInfo Info = 1;
 	bytes Source = 2;
 	string Image = 3;
+	string Dockerfile = 4;
 }
 
 message AddResponse {

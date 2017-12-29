@@ -139,6 +139,9 @@
         },
         "Image": {
           "type": "string"
+        },
+        "Dockerfile": {
+          "type": "string"
         }
       }
     },
