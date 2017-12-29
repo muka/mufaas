@@ -8,8 +8,7 @@
 /test/*/idle
 /coverage.tmp
 /coverage.out
-/idle/idle
-/idle/idle-arm
+/idle/bin
 
 # Binaries for programs and plugins
 *.exe

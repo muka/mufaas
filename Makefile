@@ -35,8 +35,10 @@ build:
 	CGO_ENABLED=0 go build -o ${build_dir}/mufaas main.go
 
 build-idle:
-	CGO_ENABLED=0 go build -o ./idle/idle idle/idle.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o ./idle/idle-arm idle/idle.go
+	mkdir -p ./idle/bin
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./idle/bin/idle-amd64 idle/idle.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o ./idle/bin/idle-arm idle/idle.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ./idle/bin/idle-arm64 idle/idle.go
 
 clean:
 	rm -rf ${build_dir}
