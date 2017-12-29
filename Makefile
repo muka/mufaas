@@ -1,4 +1,4 @@
-.PHONY: build deps generate clean test coverage docker/push docker/build
+.PHONY: build deps generate clean test coverage docker/push docker/build bindata build-idle
 
 build_dir=./build
 bin_dir=./bin
@@ -24,14 +24,19 @@ deps:
 	./bin/install_protoc.sh
 	@dep ensure
 
-generate:
+generate: bindata
 	go generate ./api/api.go
+
+bindata: build-idle
+	go-bindata -pkg asset -o asset/bindata.go -ignore=idle.go ./idle
 
 build:
 	mkdir -p ${build_dir}
 	CGO_ENABLED=0 go build -o ${build_dir}/mufaas main.go
-	CGO_ENABLED=0 go build -o ${bin_dir}/idle idle/idle.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o ${bin_dir}/idle-arm idle/idle.go
+
+build-idle:
+	CGO_ENABLED=0 go build -o ./idle/idle idle/idle.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o ./idle/idle-arm idle/idle.go
 
 clean:
 	rm -rf ${build_dir}

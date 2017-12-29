@@ -3,9 +3,13 @@
 /build
 /dist
 /test/*.tar
-/test/hello/*.txt
+/test/*/*.txt
+/test/*/Dockerfile.orig
+/test/*/idle
 /coverage.tmp
 /coverage.out
+/idle/idle
+/idle/idle-arm
 
 # Binaries for programs and plugins
 *.exe
