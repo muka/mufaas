@@ -146,7 +146,7 @@ func createFunction(client api.MufaasServiceClient) (*api.FunctionInfo, error) {
 	}
 	defer os.Remove(tmpFile)
 
-	err = util.CreateArchive(dir)
+	err = util.CreateTar(dir)
 	if err != nil {
 		return nil, err
 	}

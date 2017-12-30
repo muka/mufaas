@@ -30,6 +30,7 @@ func TestExecNoArgs(t *testing.T) {
 func TestExecWithArgs(t *testing.T) {
 
 	info := createContainer(t, "hello")
+
 	opts := ExecOptions{
 		Name: info.Name,
 		Args: []string{info.ImageName},
@@ -62,6 +63,7 @@ func TestExecWithTimeout(t *testing.T) {
 	opts := ExecOptions{
 		Name:    info.Name,
 		Args:    []string{"timeout"},
+		Stdin:   []byte("hello world from stdin"),
 		Timeout: 2,
 	}
 
@@ -77,6 +79,6 @@ func TestExecWithTimeout(t *testing.T) {
 	removeContainer(t, info.ID)
 	removeImage(t, info.ImageID)
 
-	log.Debugf("Out: \n\n%s", res.Stdout.String())
+	log.Debugf("Out:\n%s", res.Stdout.String())
 
 }

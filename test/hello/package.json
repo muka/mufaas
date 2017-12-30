@@ -9,6 +9,5 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ascii-art": "^1.4.2"
   }
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,6 +21,8 @@ import (
 	"github.com/muka/mufaas/util"
 	log "github.com/sirupsen/logrus"
 )
+
+const CmdEnvKey = "MUFAASSOURCECMD"
 
 type ImageBuildOptions struct {
 	Name       string
@@ -121,7 +124,9 @@ func parseDockerfile(opts ImageBuildOptions) (string, error) {
 	for err == nil {
 		if len(line) > 3 {
 			if strings.ToUpper(line[:3]) == "CMD" {
-				_, err := w.WriteString("\nADD ./idle /idle\nCMD [\"/idle\"]\n")
+				srcCmd := base64.StdEncoding.EncodeToString([]byte(line[4:]))
+				cmds := fmt.Sprintf("\nENV %s '%s'\nADD ./idle /idle\nCMD [\"/idle\"]\n", CmdEnvKey, srcCmd)
+				_, err := w.WriteString(cmds)
 				if err != nil {
 					return "", err
 				}
@@ -145,6 +150,8 @@ func parseDockerfile(opts ImageBuildOptions) (string, error) {
 		return "", err
 	}
 
+	log.Printf("%s", buf.String())
+
 	err = ioutil.WriteFile(dockerFile, buf.Bytes(), 0644)
 	if err != nil {
 		return "", err
@@ -154,6 +161,8 @@ func parseDockerfile(opts ImageBuildOptions) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	log.Debugf("New archive created at %s.tar", dst)
 
 	return dst + ".tar", nil
 }
@@ -184,6 +193,7 @@ func ImageBuild(opts ImageBuildOptions) (*types.ImageSummary, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer os.Remove(archive)
 
 	cli, err := getClient()
 	if err != nil {

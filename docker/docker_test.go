@@ -86,6 +86,14 @@ func createContainer(t *testing.T, dir string) containerInfo {
 		t.Fatalf("Create failed: %s", err.Error())
 	}
 
+	_, err = Start(ContainerStartOptions{
+		ImageName: imageName,
+		Name:      info.Name,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return containerInfo{
 		Name:      info.Name,
 		ID:        info.ID,

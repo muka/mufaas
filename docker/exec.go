@@ -2,14 +2,17 @@ package docker
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"io"
+	"strings"
 	"time"
 
 	"context"
-	"fmt"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/pkg/stdcopy"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,11 +20,12 @@ var defaultTimeout int64 = 3
 
 //ExecOptions control how a container is executed
 type ExecOptions struct {
-	Name  string
-	Cmd   []string
-	Env   []string
-	Stdin []byte
-	Args  []string
+	Name       string
+	Cmd        []string
+	Env        []string
+	Stdin      []byte
+	Args       []string
+	Privileged bool
 	// Timeout in second to stop the container
 	Timeout int64
 	Remove  bool
@@ -46,43 +50,99 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		return nil, err
 	}
 
+	containerName := opts.Name
+	ctx := context.Background()
+
 	// set default TTL
 	if opts.Timeout == 0 {
 		opts.Timeout = defaultTimeout
 	}
 
-	ctx := context.Background()
-	containerName := opts.Name
-
-	containers, err := List([]string{"name=" + containerName})
+	container, err := GetByName(containerName)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(containers) != 1 {
-		return nil, fmt.Errorf("Function %s not found", containerName)
-	}
+	containerID := container.ID
 
-	containerID := containers[0].ID
-
-	startConfig := types.ContainerStartOptions{}
-	if err = cli.ContainerStart(ctx, containerID, startConfig); err != nil {
-		return nil, err
-	}
-
-	attachConfig := types.ContainerAttachOptions{
-		Logs:   false,
-		Stdin:  false,
-		Stdout: true,
-		Stderr: true,
-		Stream: true,
-	}
-	conn, err := cli.ContainerAttach(ctx, containerID, attachConfig)
+	log.Debugf("Container status: %s", container.State)
+	ins, err := cli.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf("Started %s", containerName)
+	var cmd []string
+	for _, e := range ins.Config.Env {
+		p := strings.Split(e, "=")
+		if p[0] == CmdEnvKey {
+			decoded, err := base64.StdEncoding.DecodeString(p[1] + "=")
+			if err != nil {
+				return nil, err
+			}
+			err = json.Unmarshal(decoded, &cmd)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if len(opts.Args) > 0 {
+		cmd = append(cmd, opts.Args...)
+	}
+
+	execConfig := types.ExecConfig{
+		Cmd:          cmd,
+		Env:          opts.Env,
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty:          false,
+		Privileged:   opts.Privileged,
+	}
+
+	r, err := cli.ContainerExecCreate(ctx, containerID, execConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	attachResp, err := cli.ContainerExecAttach(ctx, r.ID, execConfig)
+	if err != nil {
+		return nil, err
+	}
+	defer attachResp.Close()
+
+	// io.Writer
+	outBuffer := bytes.NewBuffer([]byte{})
+	errBuffer := bytes.NewBuffer([]byte{})
+	go func() {
+		_, berr := stdcopy.StdCopy(outBuffer, errBuffer, attachResp.Reader)
+		// _, berr := io.Copy(outBuffer, attachResp.Reader)
+		if berr != nil {
+			if berr == io.EOF {
+				log.Debugf("GOT EOF %s", berr.Error())
+			} else {
+				log.Debugf("Fail stdout copy: %s", berr.Error())
+			}
+		}
+	}()
+
+	// for stdin, see cli/command/container/hijack.go in docker/cli
+	// io.Writer
+	if opts.Stdin != nil {
+		inputBuffer := bytes.NewBuffer(opts.Stdin)
+		_, err = io.Copy(attachResp.Conn, inputBuffer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	log.Debugf("Exec command %s", cmd)
+	err = cli.ContainerExecStart(ctx, r.ID, types.ExecStartCheck{
+		Tty: false,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	wait := make(chan bool, 1)
 
@@ -101,6 +161,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		for {
 			select {
 			case ev := <-ch:
+				log.Debugf("Event %s %s", ev.Action, ev.ID)
 				if ev.ID == containerID {
 					if ev.Action == "die" {
 						wait <- true
@@ -112,17 +173,8 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	}()
 
 	// sleep until something happens
+	log.Debug("Waiting for completion")
 	<-wait
-
-	var outBuffer bytes.Buffer
-	_, berr := io.Copy(&outBuffer, conn.Reader)
-	if berr != nil {
-		if berr != io.EOF {
-			log.Debugf("Fail stdout copy: %s\n", berr.Error())
-		}
-	}
-
-	defer conn.Close()
 
 	if opts.Remove {
 		err = Remove(containerID, true)
@@ -132,7 +184,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	}
 
 	return &ExecResult{
-		Stdout: &outBuffer,
-		Stderr: nil,
+		Stdout: outBuffer,
+		Stderr: errBuffer,
 	}, nil
 }

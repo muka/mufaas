@@ -43,7 +43,10 @@ func Add(req *api.AddRequest) (*api.AddResponse, error) {
 		}
 		imageName := name
 
-		_, err = docker.ImageBuild(imageName, archive)
+		_, err = docker.ImageBuild(docker.ImageBuildOptions{
+			Name:    imageName,
+			Archive: archive,
+		})
 		if err != nil {
 			return nil, err
 		}

@@ -29,11 +29,17 @@ func CreateTar(dir string) error {
 
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 
+		if path == dir {
+			return nil
+		}
+
 		if ignore != nil {
 			if !ignore.Match(path, f.IsDir()) {
+				// log.Debugf("Add %s", path)
 				list = append(list, path)
 			}
 		} else {
+			// log.Debugf("Add %s", path)
 			list = append(list, path)
 		}
 

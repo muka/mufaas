@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 
@@ -14,6 +15,11 @@ import (
 type ContainerCreated struct {
 	ID   string
 	Name string
+}
+
+type ContainerStartOptions struct {
+	Name      string
+	ImageName string
 }
 
 type CreateOptions struct {
@@ -103,6 +109,21 @@ func Remove(containerID string, forceRemove bool) (err error) {
 	return cli.ContainerRemove(context.Background(), containerID, types.ContainerRemoveOptions{Force: forceRemove})
 }
 
+// GetByName return a container by name
+func GetByName(name string) (*types.Container, error) {
+
+	containers, err := List([]string{"name=" + name})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(containers) != 1 {
+		return nil, fmt.Errorf("Function %s not found", name)
+	}
+
+	return &containers[0], nil
+}
+
 // List containers
 func List(listFilters []string) (list []types.Container, err error) {
 	cli, err := getClient()
@@ -123,4 +144,35 @@ func List(listFilters []string) (list []types.Container, err error) {
 		return nil, err
 	}
 	return list, nil
+}
+
+// Start a container
+func Start(opts ContainerStartOptions) (*types.Container, error) {
+
+	cli, err := getClient()
+	if err != nil {
+		return nil, err
+	}
+
+	imageName := opts.ImageName
+	if imageName == "" {
+		return nil, errors.New("Image name not provided")
+	}
+
+	if opts.Name == "" {
+		opts.Name = imageName
+	}
+
+	container, err := GetByName(opts.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	startConfig := types.ContainerStartOptions{}
+	if err = cli.ContainerStart(ctx, container.ID, startConfig); err != nil {
+		return nil, err
+	}
+
+	return container, nil
 }
