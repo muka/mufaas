@@ -27,6 +27,26 @@ func TestExecNoArgs(t *testing.T) {
 	log.Debugf("Out: \n\n%s", res.Stdout.String())
 }
 
+func TestExecFailing(t *testing.T) {
+
+	info := createContainer(t, "failing")
+	opts := ExecOptions{Name: info.Name}
+
+	res, err := Exec(opts)
+	if err != nil {
+		t.Fatalf("Exec failed: %s", err.Error())
+	}
+
+	if len(res.Stderr.String()) == 0 {
+		t.Fatal("Unexpected empty stderr")
+	}
+
+	removeContainer(t, info.ID)
+	removeImage(t, info.ImageID)
+
+	log.Debugf("Stderr: \n\n%s", res.Stderr.String())
+}
+
 func TestExecWithArgs(t *testing.T) {
 
 	info := createContainer(t, "hello")
