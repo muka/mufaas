@@ -85,7 +85,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	for _, e := range ins.Config.Env {
 		p := strings.Split(e, "=")
 		if p[0] == CmdEnvKey {
-			decoded, err := base64.StdEncoding.DecodeString(p[1] + "=")
+			decoded, err := base64.RawStdEncoding.DecodeString(p[1])
 			if err != nil {
 				return nil, err
 			}

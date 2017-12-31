@@ -80,7 +80,7 @@ func parseDockerfile(dockerFile, dst string, opts *ImageBuildOptions) (string, e
 	for err == nil {
 		if len(line) > 3 {
 			if strings.ToUpper(line[:3]) == "CMD" {
-				srcCmd := base64.StdEncoding.EncodeToString([]byte(line[4:]))
+				srcCmd := base64.RawStdEncoding.EncodeToString([]byte(line[4:]))
 				cmds := fmt.Sprintf("\nENV %s '%s'\nADD ./idle /idle\nCMD [\"/idle\"]\n", CmdEnvKey, srcCmd)
 				_, err := w.WriteString(cmds)
 				if err != nil {
