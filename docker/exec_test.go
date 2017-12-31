@@ -27,7 +27,7 @@ func TestExecNoArgs(t *testing.T) {
 	log.Debugf("Out: \n\n%s", res.Stdout.String())
 }
 
-func TestExecFailing(t *testing.T) {
+func TestExecWithStderr(t *testing.T) {
 
 	info := createContainer(t, "failing")
 	opts := ExecOptions{Name: info.Name}

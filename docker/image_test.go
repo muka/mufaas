@@ -10,8 +10,3 @@ func TestFailListFilter(t *testing.T) {
 		t.Fatal("Filter error expected")
 	}
 }
-
-func TestBuild(t *testing.T) {
-	_, imageID := createImage(t, "hello")
-	removeImage(t, imageID)
-}
