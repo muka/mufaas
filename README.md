@@ -29,6 +29,19 @@ Flags:
 - `-v` enables debug logging
 - `--url` set the daemon endpoint
 
+## Language support
+
+When calling `mufaas add ./path` the default behavior is to lookup for a `Dockerfile` in the provided path and build it.
+
+If a Dockerfile is not available but the `--type` flag is provided, mufaas will use a matching `Dockerfile` placed in a shared directory on the filesystem (eg `~/.mufaas/templates/<type>/Dockerfile`) to create the function image.
+
+Is up to the provided `Dockerfile` implementation to run any dependency management tool and start the container with `CMD`.
+
+If other files or directories are in the same path of the Dockerfile also those will be copied in the container image.
+
+Ensure to always provide a `CMD` to be executed when running the function (`ENTRYPOINT` is ignored).
+
+For reference see `./templates/node/Dockerfile`
 
 ## Exec mode benchmark
 
