@@ -27,6 +27,7 @@ import (
 
 var cfgFile string
 var verbose *bool
+var typePaths []string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -49,18 +50,10 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mufaas.yaml)")
-
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Fullpath to the config file (default is $HOME/.mufaas/config.yaml)")
 	rootCmd.PersistentFlags().String("url", "localhost:5000", "The URL of the mufaas service")
+	rootCmd.PersistentFlags().StringArrayVar(&typePaths, "types-path", []string{"~/.mufaas/templates", "./templates"}, "Path where to load type templates")
 	verbose = rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Show verbose output")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.

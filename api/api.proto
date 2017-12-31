@@ -19,6 +19,7 @@ message AddRequest {
 	bytes Source = 2;
 	string Image = 3;
 	string Dockerfile = 4;
+	repeated string TypesPath = 5;
 }
 
 message AddResponse {

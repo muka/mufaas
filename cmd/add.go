@@ -53,6 +53,9 @@ var addCmd = &cobra.Command{
 		}
 		addRequest.Source = src
 
+		// add type paths if set
+		addRequest.TypesPath = typePaths
+
 		url := cmd.Flag("url").Value.String()
 		c, conn, err := api.NewClient(url)
 		if err != nil {
@@ -75,9 +78,7 @@ var addCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(addCmd)
-
 	addRequest.Info = &api.FunctionInfo{}
 	addCmd.Flags().StringVarP(&addRequest.Info.Name, "name", "n", "", "The image name to add")
 	addCmd.Flags().StringVarP(&addRequest.Info.Type, "type", "t", "", "The language of the source code")
-	// addCmd.Flags().StringVarP(&addRequest.Info.Cmd, "command", "c", "", "The command to run from the image (will override the default one)")
 }
