@@ -19,7 +19,7 @@ func TestList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	addf, err := createFunction(client)
+	addf, err := createFunction(client, "TestList")
 	if err != nil {
 		t.Fatalf("create fn failed: %s\n", err.Error())
 	}

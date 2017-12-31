@@ -45,11 +45,11 @@ func TestRemoveMultiple(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f1, err := createFunction(client)
+	f1, err := createFunction(client, "TestRemoveMultiple1")
 	if err != nil {
 		t.Fatalf("add failed: %s\n", err.Error())
 	}
-	f2, err := createFunction(client)
+	f2, err := createFunction(client, "TestRemoveMultiple2")
 	if err != nil {
 		t.Fatalf("add failed: %s\n", err.Error())
 	}

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -134,9 +135,11 @@ func removeFunction(client api.MufaasServiceClient, force bool, names ...string)
 	return true, nil
 }
 
-func createFunction(client api.MufaasServiceClient) (*api.FunctionInfo, error) {
+func createFunction(client api.MufaasServiceClient, funcName string) (*api.FunctionInfo, error) {
 
-	dir := "../test/hello"
+	dirName := "hello"
+	funcName = strings.ToLower(funcName)
+	dir := fmt.Sprintf("../test/%s", dirName)
 
 	// add tmp file to trick docker build and create a new image
 	tmpFile := filepath.Join(dir, xid.New().String()+".txt")
@@ -159,8 +162,7 @@ func createFunction(client api.MufaasServiceClient) (*api.FunctionInfo, error) {
 	ctx := context.Background()
 	addReq := &api.AddRequest{
 		Info: &api.FunctionInfo{
-			Type: "node",
-			Name: "test_" + xid.New().String(),
+			Name: fmt.Sprintf("test_%s_%s_%s", dirName, funcName, xid.New().String()),
 		},
 		Source: content,
 	}

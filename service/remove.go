@@ -25,7 +25,9 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 		return nil, err
 	}
 
-	log.Debugf("Got %d containers to remove", len(containers))
+	log.Debugf("Got %d functions to remove", len(containers))
+
+	imagesList := map[string]bool{}
 	for _, container := range containers {
 
 		name := container.Names[0]
@@ -39,9 +41,19 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 			r.Error = err.Error()
 		}
 		res.Functions = append(res.Functions, r)
+
+		imagesList[container.Image] = true
+		imagesList[container.ImageID] = true
 	}
 
-	// remove dangling
+	for imageID := range imagesList {
+		err := docker.ImageRemove(imageID, true)
+		if err != nil {
+			log.Warnf("Failed to remove %s: %s", imageID, err.Error())
+		}
+	}
+
+	// remove dangling images
 	filter = []string{
 		"label=" + docker.DefaultLabel + "=1", // only if managed by us
 		"dangling=true",

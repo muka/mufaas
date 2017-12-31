@@ -63,7 +63,7 @@ func TestRun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	addf, err := createFunction(client)
+	addf, err := createFunction(client, "TestRun")
 	if err != nil {
 		t.Fatalf("create fn failed: %s\n", err.Error())
 	}
