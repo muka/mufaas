@@ -32,9 +32,9 @@ Flags:
 
 ## Exec mode benchmark
 
-1. Create & run node container  ~ 0.60ms
-2. Run node container ~ 0.45ms
-3. Exec on idle container  ~ **0.083985s**
+1. Create & run function container: 0.60s
+2. Run function container: 0.45s
+3. Exec on running container: **0.084s**
 
 ## To Do
 
