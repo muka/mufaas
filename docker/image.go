@@ -150,8 +150,6 @@ func parseDockerfile(opts ImageBuildOptions) (string, error) {
 		return "", err
 	}
 
-	log.Printf("%s", buf.String())
-
 	err = ioutil.WriteFile(dockerFile, buf.Bytes(), 0644)
 	if err != nil {
 		return "", err

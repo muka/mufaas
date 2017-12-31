@@ -67,7 +67,11 @@ func removeImage(t *testing.T, imageID string) {
 }
 
 func removeContainer(t *testing.T, containerID string) {
-	err := Remove(containerID, true)
+	err := Kill(containerID)
+	if err != nil {
+		log.Debugf("Failed to kill %s: %s", containerID, err.Error())
+	}
+	err = Remove(containerID, true)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -65,7 +65,17 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 
 	containerID := container.ID
 
-	log.Debugf("Container status: %s", container.State)
+	if container.State != "running" {
+		log.Debug("Container not running, starting")
+		_, err = Start(ContainerStartOptions{
+			ImageName: container.Image,
+			Name:      containerName,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	ins, err := cli.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return nil, err
@@ -111,19 +121,17 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	}
 	defer attachResp.Close()
 
+	wait := make(chan error, 1)
+
 	// io.Writer
 	outBuffer := bytes.NewBuffer([]byte{})
 	errBuffer := bytes.NewBuffer([]byte{})
 	go func() {
 		_, berr := stdcopy.StdCopy(outBuffer, errBuffer, attachResp.Reader)
-		// _, berr := io.Copy(outBuffer, attachResp.Reader)
 		if berr != nil {
-			if berr == io.EOF {
-				log.Debugf("GOT EOF %s", berr.Error())
-			} else {
-				log.Debugf("Fail stdout copy: %s", berr.Error())
-			}
+			log.Debugf("Fail stdout copy: %s", berr.Error())
 		}
+		wait <- berr
 	}()
 
 	// for stdin, see cli/command/container/hijack.go in docker/cli
@@ -144,27 +152,30 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		return nil, err
 	}
 
-	wait := make(chan bool, 1)
+	// negative timeout means no timeout
+	if opts.Timeout > -1 {
+		go func() {
+			d := time.Second * time.Duration(opts.Timeout)
+			time.Sleep(d)
+			kerr := Kill(containerID)
+			if kerr != nil {
+				log.Debugf("Error on kill: %s", kerr.Error())
+			}
+			wait <- kerr
+		}()
+	}
 
 	go func() {
-		d := time.Second * time.Duration(opts.Timeout)
-		time.Sleep(d)
-		kerr := Kill(containerID)
-		if kerr != nil {
-			log.Debugf("Error on kill: %s", kerr.Error())
-		}
-		wait <- true
-	}()
-
-	go func() {
-		ch := getEventsChannel()
 		for {
 			select {
-			case ev := <-ch:
+			case <-wait:
+				log.Debugf("Stop wait received, quitting")
+				return
+			case ev := <-eventsChannel:
 				log.Debugf("Event %s %s", ev.Action, ev.ID)
 				if ev.ID == containerID {
 					if ev.Action == "die" {
-						wait <- true
+						wait <- nil
 						return
 					}
 				}
@@ -174,7 +185,10 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 
 	// sleep until something happens
 	log.Debug("Waiting for completion")
-	<-wait
+	err = <-wait
+	if err != nil {
+		return nil, err
+	}
 
 	if opts.Remove {
 		err = Remove(containerID, true)

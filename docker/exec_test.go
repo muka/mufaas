@@ -32,8 +32,9 @@ func TestExecWithArgs(t *testing.T) {
 	info := createContainer(t, "hello")
 
 	opts := ExecOptions{
-		Name: info.Name,
-		Args: []string{info.ImageName},
+		Name:    info.Name,
+		Args:    []string{info.ImageName},
+		Timeout: -1,
 	}
 
 	res, err := Exec(opts)

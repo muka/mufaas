@@ -40,7 +40,7 @@ var addCmd = &cobra.Command{
 
 		dir := args[0]
 
-		err := util.CreateArchive(dir)
+		err := util.CreateTar(dir)
 		if err != nil {
 			fmt.Printf("Error creating archive: %s", err.Error())
 			os.Exit(1)
