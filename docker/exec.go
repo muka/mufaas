@@ -122,6 +122,7 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	defer attachResp.Close()
 
 	wait := make(chan error, 1)
+	exited := false
 
 	// io.Writer
 	outBuffer := bytes.NewBuffer([]byte{})
@@ -157,21 +158,24 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		go func() {
 			d := time.Second * time.Duration(opts.Timeout)
 			time.Sleep(d)
-			kerr := Kill(containerID)
-			if kerr != nil {
-				log.Debugf("Error on kill: %s", kerr.Error())
+			if !exited {
+				log.Debugf("Forcing container exit by kill")
+				kerr := Kill(containerID)
+				if kerr != nil {
+					log.Debugf("Error on kill: %s", kerr.Error())
+				}
+				wait <- kerr
 			}
-			wait <- kerr
 		}()
 	}
 
 	go func() {
 		for {
 			select {
-			case <-wait:
-				log.Debugf("Stop wait received, quitting")
-				return
 			case ev := <-eventsChannel:
+				if ev.Action == "quit_ch" {
+					return
+				}
 				log.Debugf("Event %s %s", ev.Action, ev.ID)
 				if ev.ID == containerID {
 					if ev.Action == "die" {
@@ -184,11 +188,13 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 	}()
 
 	// sleep until something happens
-	log.Debug("Waiting for completion")
 	err = <-wait
 	if err != nil {
 		return nil, err
 	}
+
+	exited = true
+	eventsChannel <- ContainerEvent{Action: "quit_ch"}
 
 	if opts.Remove {
 		err = Remove(containerID, true)
