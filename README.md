@@ -31,7 +31,7 @@ Flags:
 
 ## Language support
 
-Currently basic support is provided for those languages
+Currently basic support is provided for those languages. See `examples` directory for sample functions.
 
 - [x] node
 - [x] python
