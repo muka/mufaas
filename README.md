@@ -47,7 +47,7 @@ For reference see `./templates/node/Dockerfile`
 
 1. Create & run function container: 0.60s
 2. Run function container: 0.45s
-3. Exec on running container: **0.084s**
+3. Exec on running container: **0.17s**
 
 ## To Do
 
