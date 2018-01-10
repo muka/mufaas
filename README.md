@@ -31,6 +31,15 @@ Flags:
 
 ## Language support
 
+Currently basic support is provided for those languages
+
+- [x] node
+- [x] python
+- [x] php
+- [ ] golang
+
+### Adding language support
+
 When calling `mufaas add ./path` the default behavior is to lookup for a `Dockerfile` in the provided path and build it.
 
 If a Dockerfile is not available but the `--type` flag is provided, mufaas will use a matching `Dockerfile` placed in a shared directory on the filesystem (eg `~/.mufaas/templates/<type>/Dockerfile`) to create the function image.
