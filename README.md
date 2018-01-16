@@ -17,12 +17,15 @@ Currently only `go get` is supported
 1.  Start the daemon
     `mufaas daemon`
 2.  Point to a folder with a Dockerfile
-    `mufaas add --name test1 ./somewhere`
+    ```
+    cd $GOPATH/src/github.com/muka/mufaas
+    mufaas add --name node-example --type node ./examples/node
+    ```
 3.  Once built you can run the function
-    `mufaas run test1 arg1`
+    `mufaas run node-example World`
     The API has ongoing support for `stdin` as a io.Reader.
 4.  Drop the function
-    `mufaas remve test1`
+    `mufaas remove node-example`
 
 Flags:
 
@@ -62,7 +65,7 @@ For reference see `./templates/node/Dockerfile`
 
 - [ ] Move todo list to issue tracker
 - [ ] Add test coverage to commands
-- [ ] Add support for language specific deployment (from templates base image)
+- [X] Add support for language specific deployment (from templates base image)
 - [ ] Add stream support for stdin / stdout / stderr
 - [ ] Add pipe-able command support
 - [ ] Add docker release (`amd64`, `arm`)
