@@ -50,7 +50,7 @@ func parseDockerfile(dockerFile, dst string, opts *ImageBuildOptions) (string, e
 		assetName += "-" + runtime.GOARCH
 		break
 	default:
-		return "", fmt.Errorf("Architecture `%s` not supported, idle binaries may need to be regenerated.", runtime.GOARCH)
+		return "", fmt.Errorf("architecture `%s` not supported, idle binaries may need to be regenerated", runtime.GOARCH)
 	}
 
 	idleDest := filepath.Join(dst, "idle")
@@ -59,11 +59,11 @@ func parseDockerfile(dockerFile, dst string, opts *ImageBuildOptions) (string, e
 		return "", err
 	}
 
-	if _, err := os.Stat(idleDest); err == nil {
+	if _, err1 := os.Stat(idleDest); err1 == nil {
 		fmt.Print("Drop idle")
-		err := os.Remove(idleDest)
-		if err != nil {
-			return "", err
+		err2 := os.Remove(idleDest)
+		if err2 != nil {
+			return "", err2
 		}
 	}
 
@@ -82,14 +82,14 @@ func parseDockerfile(dockerFile, dst string, opts *ImageBuildOptions) (string, e
 			if strings.ToUpper(line[:3]) == "CMD" {
 				srcCmd := base64.RawStdEncoding.EncodeToString([]byte(line[4:]))
 				cmds := fmt.Sprintf("\nENV %s '%s'\nADD ./idle /idle\nCMD [\"/idle\"]\n", CmdEnvKey, srcCmd)
-				_, err := w.WriteString(cmds)
-				if err != nil {
-					return "", err
+				_, err1 := w.WriteString(cmds)
+				if err1 != nil {
+					return "", err1
 				}
 			} else {
-				_, err := w.WriteString(line)
-				if err != nil {
-					return "", err
+				_, err1 := w.WriteString(line)
+				if err1 != nil {
+					return "", err1
 				}
 			}
 		}
@@ -167,10 +167,10 @@ func ImageBuild(opts ImageBuildOptions) (*types.ImageSummary, error) {
 
 	//copy Dockerfile from TypesPath if not provided by the archive
 	dockerFile := filepath.Join(dst, opts.Dockerfile)
-	if _, err := os.Stat(dockerFile); os.IsNotExist(err) {
-		dst, err = template.CreateFunction(dst, opts.Type, opts.TypesPath)
-		if err != nil {
-			return nil, err
+	if _, err1 := os.Stat(dockerFile); os.IsNotExist(err1) {
+		dst, err1 = template.CreateFunction(dst, opts.Type, opts.TypesPath)
+		if err1 != nil {
+			return nil, err1
 		}
 		dockerFile = filepath.Join(dst, "Dockerfile")
 		// ensure the built dst is also removed
@@ -181,7 +181,7 @@ func ImageBuild(opts ImageBuildOptions) (*types.ImageSummary, error) {
 	}
 
 	// ensure we have a Dockerfile
-	if _, err := os.Stat(dockerFile); os.IsNotExist(err) {
+	if _, err1 := os.Stat(dockerFile); os.IsNotExist(err1) {
 		return nil, errors.New("Dockerfile not found")
 	}
 
@@ -225,9 +225,9 @@ func ImageBuild(opts ImageBuildOptions) (*types.ImageSummary, error) {
 	}
 	for scanner.Scan() {
 		if log.GetLevel() == log.DebugLevel {
-			err := json.Unmarshal(scanner.Bytes(), &info)
-			if err != nil {
-				log.Warnf("Unmarshal failed: %s", err.Error())
+			err1 := json.Unmarshal(scanner.Bytes(), &info)
+			if err1 != nil {
+				log.Warnf("Unmarshal failed: %s", err1.Error())
 				continue
 			}
 			s := strings.Replace(info.Stream, "\n", "", -1)

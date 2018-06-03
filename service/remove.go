@@ -37,16 +37,16 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 		}
 
 		if container.State == "running" {
-			err := docker.Kill(container.ID)
-			if err != nil {
-				log.Warnf("Failed to kill container: %s", err.Error())
+			err1 := docker.Kill(container.ID)
+			if err1 != nil {
+				log.Warnf("Failed to kill container: %s", err1.Error())
 			}
 		}
 
 		log.Debugf("Remove container %s", container.ID)
-		err := docker.Remove(container.ID, forceRemove)
-		if err != nil {
-			r.Error = err.Error()
+		err1 := docker.Remove(container.ID, forceRemove)
+		if err1 != nil {
+			r.Error = err1.Error()
 		}
 		res.Functions = append(res.Functions, r)
 
@@ -56,11 +56,11 @@ func Remove(req *api.RemoveRequest) (*api.RemoveResponse, error) {
 
 	for imageID := range imagesList {
 
-		containerList, err := docker.List([]string{
+		containerList, err1 := docker.List([]string{
 			"ancestor=" + imageID,
 		})
-		if err != nil {
-			return nil, err
+		if err1 != nil {
+			return nil, err1
 		}
 
 		if len(containerList) > 0 {

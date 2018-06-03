@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+//DefaultLabel for containers
 const DefaultLabel = "mufaas"
 
 var dockerClient *client.Client
@@ -36,7 +37,7 @@ func buildFilter(listFilters []string) (filters.Args, error) {
 	for _, filter := range listFilters {
 		filterParts := strings.Split(filter, "=")
 		if len(filterParts) < 2 {
-			return f, fmt.Errorf("Filter `%s` should have format key=value")
+			return f, fmt.Errorf("Filter `%s` should have format key=value", filter)
 		}
 		f.Add(filterParts[0], strings.Join(filterParts[1:], "="))
 	}

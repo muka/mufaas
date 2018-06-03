@@ -64,7 +64,7 @@ var runCmd = &cobra.Command{
 		}
 
 		t2 := time.Since(t1)
-		log.Debugf("Run took %fs", t2.Seconds())
+		log.Debugf("Run took %dms", t2.Nanoseconds()/1000000)
 
 		if len(res.Err) > 0 {
 			fmt.Printf("Error: %s\n", string(res.Err))

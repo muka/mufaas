@@ -41,6 +41,8 @@ type ExecResult struct {
 // Exec spawn a container and wait for its output
 func Exec(opts ExecOptions) (*ExecResult, error) {
 
+	t1 := time.Now()
+
 	if len(opts.Name) == 0 {
 		return nil, errors.New("Function name is empty")
 	}
@@ -63,6 +65,9 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		return nil, err
 	}
 
+	t2 := time.Since(t1)
+	log.Debugf("GetByName took %dms", t2.Nanoseconds()/1000000)
+
 	containerID := container.ID
 
 	if container.State != "running" {
@@ -74,6 +79,8 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		if err != nil {
 			return nil, err
 		}
+		t3 := time.Since(t1)
+		log.Debugf("ContainerStart took %dms", t3.Nanoseconds()/1000000)
 	}
 
 	ins, err := cli.ContainerInspect(ctx, containerID)
@@ -81,13 +88,16 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 		return nil, err
 	}
 
+	t4 := time.Since(t1)
+	log.Debugf("Container inspect took %dms", t4.Nanoseconds()/1000000)
+
 	var cmd []string
 	for _, e := range ins.Config.Env {
 		p := strings.Split(e, "=")
 		if p[0] == CmdEnvKey {
-			decoded, err := base64.RawStdEncoding.DecodeString(p[1])
-			if err != nil {
-				return nil, err
+			decoded, err1 := base64.RawStdEncoding.DecodeString(p[1])
+			if err1 != nil {
+				return nil, err1
 			}
 			err = json.Unmarshal(decoded, &cmd)
 			if err != nil {
@@ -147,11 +157,15 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 
 	log.Debugf("Exec command %s", cmd)
 	err = cli.ContainerExecStart(ctx, r.ID, types.ExecStartCheck{
-		Tty: false,
+		Tty:    false,
+		Detach: false,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	t5 := time.Since(t1)
+	log.Debugf("ContainerExecStart took %dms", t5.Nanoseconds()/1000000)
 
 	// negative timeout means no timeout
 	if opts.Timeout > -1 {
@@ -202,6 +216,9 @@ func Exec(opts ExecOptions) (*ExecResult, error) {
 			log.Debugf("Remove err: %s", err.Error())
 		}
 	}
+
+	t6 := time.Since(t1)
+	log.Debugf("Exec took %dms", t6.Nanoseconds()/1000000)
 
 	return &ExecResult{
 		Stdout: outBuffer,

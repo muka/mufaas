@@ -5,6 +5,7 @@ import (
 	"github.com/muka/mufaas/docker"
 )
 
+//Run execute a function
 func Run(req *api.RunRequest) (*api.RunResponse, error) {
 
 	opts := docker.ExecOptions{

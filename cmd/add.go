@@ -71,7 +71,7 @@ var addCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Printf("Added image %s (id=%s)", res.Info.Name, res.Info.ID[7:17])
+		fmt.Printf("Added image %s (id=%s)\n", res.Info.Name, res.Info.ID[7:17])
 
 	},
 }
