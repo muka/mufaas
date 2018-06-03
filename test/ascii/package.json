@@ -6,6 +6,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "ascii-art": "^1.4.2"
+    "ascii-art": "^1.4.3"
   }
 }
