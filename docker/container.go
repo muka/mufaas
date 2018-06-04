@@ -12,16 +12,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ContainerCreated container created
 type ContainerCreated struct {
 	ID   string
 	Name string
 }
 
+// ContainerStartOptions container start options
 type ContainerStartOptions struct {
 	Name      string
 	ImageName string
 }
 
+// CreateOptions create options
 type CreateOptions struct {
 	Name       string
 	Image      string

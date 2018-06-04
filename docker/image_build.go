@@ -22,6 +22,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ImageBuildOptions options to build an image
 type ImageBuildOptions struct {
 	Name       string
 	Type       string
