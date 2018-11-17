@@ -26,3 +26,5 @@
 .glide/
 
 /examples/*.tar
+*.tar
+.tar
