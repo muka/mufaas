@@ -14,6 +14,7 @@ func Run(req *api.RunRequest) (*api.RunResponse, error) {
 		Stdin: req.Stdin,
 		Env:   req.Env,
 	}
+
 	execResult, err := docker.Exec(opts)
 	if err != nil {
 		return nil, err

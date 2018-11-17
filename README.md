@@ -76,4 +76,4 @@ For reference see `./templates/node/Dockerfile`
 
 MIT License
 
-Copyright (c) 2017 Luca Capra
+Copyright (c) Luca Capra
